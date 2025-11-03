@@ -1,53 +1,15 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
-
-//Global players and physics variables
-
-sf::Sprite playerSprite; //The player 
-sf::Texture idleTexture; 
-sf::Texture walkTexture; 
-sf::Texture jumpTexture; 
-sf::Texture backgroundTexture;
-sf::Sprite backgroundSprite;
-sf::Clock gameClock; //The Game Clock
-
-
-sf::Vector2f velocity(0.f, 0.f); // x and y speed
-const float GRAVITY = 1000.f;  
-const float MOVE_SPEED = 400.f;  
-const float JUMP_SPEED = 500.f;  
-bool onGround = true; 
-
-
-//Animation Sprite Variables
-int animFrame = 0;            // Which frame (column) in that row
-float animTimer = 0.f;        // A timer to know when to switch frames
-const float ANIM_SPEED = 0.1f; // Switch frames every 0.1 seconds
-const int FRAME_WIDTH = 128;   // Width of one sprite frame (ADJUST AS NEEDED)
-const int FRAME_HEIGHT = 128;  // Height of one sprite frame (ADJUST AS NEEDED)
-const int IDLE_FRAMES = 6;
-const int RUN_FRAMES = 6;
-const int JUMP_FRAMES = 2;
-int currentFrameCount = IDLE_FRAMES;
-
+#include "Player.h" // --- Include your new Player blueprint ---
 
 int main()
 {
-
-    //rendering a game window
+    // --- 1. Setup Window and Background ---
     sf::RenderWindow window(sf::VideoMode(1536, 1024), "Extraction");
-
-    if (!window.isOpen())
-    {
-        std::cerr << "ERROR: SFML Window failed to open." << std::endl;
-        return -1; 
-    }
-
-
     window.setFramerateLimit(30);
 
-    //loading all necessary sprite sheets
-
+    sf::Texture backgroundTexture;
+    sf::Sprite backgroundSprite;
     if (!backgroundTexture.loadFromFile("../assets/Back.png"))
     {
         std::cerr << "Error loading background.png" << std::endl;
@@ -55,151 +17,38 @@ int main()
     }
     backgroundSprite.setTexture(backgroundTexture);
 
-    if (!walkTexture.loadFromFile("../assets/Run.png"))
-    {
-        std::cerr << "Error loading character.png" << std::endl;
-        return -1;
-    }
-    if (!idleTexture.loadFromFile("../assets/Idle.png"))
-    {
-        std::cerr << "Error loading character.png" << std::endl;
-        return -1;
-    }    
+    // --- 2. Create the Player ---
+    Player myPlayer; // This one line creates your player and runs its constructor
+    myPlayer.loadAssets(); // Call our function to load the textures
 
-    //setting the initial position of the sprite 
+    sf::Clock gameClock;
 
-    playerSprite.setTexture(idleTexture);
-    playerSprite.setPosition(100.f, 950.f);
-
-    // Set the origin to the CENTER of the sprite for correct flipping
-    playerSprite.setOrigin(FRAME_WIDTH / 2.f, FRAME_HEIGHT); 
-    
-    playerSprite.setTextureRect(sf::IntRect(0, 0, FRAME_WIDTH, FRAME_HEIGHT));
-
-    playerSprite.setScale(3.f, 3.f);
-    // --- End Animation Setup ---
-
-
-
-
-    //GAME LOOP
+    // --- 3. The Game Loop ---
     while (window.isOpen())
     {
-        float deltaTime = gameClock.restart().asSeconds(); // time clock
+        float deltaTime = gameClock.restart().asSeconds();
 
-
+        // --- Handle Events ---
         sf::Event event;
         while (window.pollEvent(event))
         {
             if (event.type == sf::Event::Closed)
-            {
                 window.close();
-            }
-            if (event.type == sf::Event::KeyPressed)
-            {
-                if (event.key.code == sf::Keyboard::Space || event.key.code == sf::Keyboard::Up)
-                {
-                    if(onGround){// Player is on the ground, so let them jump
-                        velocity.y = -JUMP_SPEED; // Shoot up (negative Y)
-                        onGround = false;
-                    }
             
-
-                }
-            }
+            // Pass the event to the player to handle
+            myPlayer.handleEvents(event); 
         }
 
+        // --- Update Logic ---
+        // Just tell the player to update itself!
+        myPlayer.update(deltaTime);
 
-        
-        velocity.x = 0.f; 
-
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
-        {
-            velocity.x = -MOVE_SPEED;
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
-        {
-            velocity.x = MOVE_SPEED;
-        }
-
-        // --- NEW: Sprite Flipping ---
-        if (velocity.x > 0.f) // Moving right
-            playerSprite.setScale(3.f, 3.f); // Normal scale
-        else if (velocity.x < 0.f) // Moving left
-            playerSprite.setScale(-3.f, 3.f); // Flipped horizontally
-        // --- End Flipping ---
-
-        // --- NEW: State Machine (Decide which animation to play) ---
-        // (Assuming Row 0=Idle, Row 1=Walk, Row 2=Jump)
-
-        if (velocity.x != 0.f)
-        {
-            playerSprite.setTexture(walkTexture);
-             // Walking
-        }
-        else
-        {
-            playerSprite.setTexture(idleTexture); // Idle
-            currentFrameCount = IDLE_FRAMES;
-        }
-
-
-        // --- End State Machine ---
-
-
-        if (!onGround)
-        {
-            velocity.y += GRAVITY * deltaTime;
-        }
-
-        // Move the player based on the final velocity
-        playerSprite.move(velocity * deltaTime);
-
-        // Check for ground collision (a simple floor)
-        // We'll say the "floor" is at Y = 950
-        if (playerSprite.getPosition().y >= 950.f)
-        {
-            if (!onGround) // Check if the player was previously airborne
-            {
-                velocity.y = 0; // Stop falling
-                onGround = true; 
-            }
-            playerSprite.setPosition(playerSprite.getPosition().x, 950.f);
-        }
-
-        animTimer += deltaTime;
-        if (animTimer >= ANIM_SPEED)
-        {
-            animTimer = 0.f; 
-            animFrame++; 
-            
-            // --- FIX 3: Use the correct frame count for the current animation ---
-            if (animFrame >= currentFrameCount) // Use >= and the variable
-            {
-                animFrame = 0;
-            }
-        }
-        
-        // --- Update the "cookie cutter" ---
-        playerSprite.setTextureRect(sf::IntRect(
-            animFrame * FRAME_WIDTH,
-            0, // animRow is 0 because each texture is its own file
-            FRAME_WIDTH,              
-            FRAME_HEIGHT              
-        ));
-
-
-        // --- 7. Drawing ---
+        // --- Drawing ---
         window.clear(); 
-        // --- Draw the player ---
         window.draw(backgroundSprite);
-
-        window.draw(playerSprite); 
-
+        myPlayer.draw(window); // Tell the player to draw itself
         window.display();
-
-        
     }
+    
     return 0;
-
 }

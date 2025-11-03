@@ -4,19 +4,19 @@
 //Global players and physics variables
 
 sf::Sprite playerSprite; //The player 
-sf::Texture idleTexture; //Texture for Idle sprite
-sf::Texture walkTexture; //Texture for walk sprite
-sf::Texture jumpTexture; //Texture for jump sprite  
+sf::Texture idleTexture; 
+sf::Texture walkTexture; 
+sf::Texture jumpTexture; 
 sf::Texture backgroundTexture;
 sf::Sprite backgroundSprite;
 sf::Clock gameClock; //The Game Clock
 
 
-sf::Vector2f velocity(0.f, 0.f); // (x, y) speed
-const float GRAVITY = 1000.f;    // pixels per second, pulling down
-const float MOVE_SPEED = 400.f;  // pixels per second, for left/right
-const float JUMP_SPEED = 500.f;  // pixels per second, for initial jump
-bool onGround = true; // Checks if is on the ground
+sf::Vector2f velocity(0.f, 0.f); // x and y speed
+const float GRAVITY = 1000.f;  
+const float MOVE_SPEED = 400.f;  
+const float JUMP_SPEED = 500.f;  
+bool onGround = true; 
 
 
 //Animation Sprite Variables
@@ -33,6 +33,8 @@ int currentFrameCount = IDLE_FRAMES;
 
 int main()
 {
+
+    //rendering a game window
     sf::RenderWindow window(sf::VideoMode(1536, 1024), "Extraction");
 
     if (!window.isOpen())
@@ -43,6 +45,8 @@ int main()
 
 
     window.setFramerateLimit(30);
+
+    //loading all necessary sprite sheets
 
     if (!backgroundTexture.loadFromFile("../assets/Back.png"))
     {
@@ -56,28 +60,32 @@ int main()
         std::cerr << "Error loading character.png" << std::endl;
         return -1;
     }
-    if (!idleTexture.loadFromFile("./assets/Idle.png"))
+    if (!idleTexture.loadFromFile("../assets/Idle.png"))
     {
         std::cerr << "Error loading character.png" << std::endl;
         return -1;
     }    
+
+    //setting the initial position of the sprite 
+
     playerSprite.setTexture(idleTexture);
     playerSprite.setPosition(100.f, 950.f);
 
-    // --- NEW: Animation Setup ---
     // Set the origin to the CENTER of the sprite for correct flipping
     playerSprite.setOrigin(FRAME_WIDTH / 2.f, FRAME_HEIGHT); 
     
-    // Set the initial "cookie cutter" to the first frame (idle)
     playerSprite.setTextureRect(sf::IntRect(0, 0, FRAME_WIDTH, FRAME_HEIGHT));
-    // --- End Animation Setup ---
+
     playerSprite.setScale(3.f, 3.f);
-    //edits
+    // --- End Animation Setup ---
 
 
+
+
+    //GAME LOOP
     while (window.isOpen())
     {
-        float deltaTime = gameClock.restart().asSeconds(); // edits
+        float deltaTime = gameClock.restart().asSeconds(); // time clock
 
 
         sf::Event event;
@@ -126,11 +134,13 @@ int main()
 
         if (velocity.x != 0.f)
         {
-            playerSprite.setTexture(walkTexture); // Walking
+            playerSprite.setTexture(walkTexture);
+             // Walking
         }
         else
         {
             playerSprite.setTexture(idleTexture); // Idle
+            currentFrameCount = IDLE_FRAMES;
         }
 
 
@@ -142,13 +152,19 @@ int main()
             velocity.y += GRAVITY * deltaTime;
         }
 
+        // Move the player based on the final velocity
+        playerSprite.move(velocity * deltaTime);
+
         // Check for ground collision (a simple floor)
-        // We'll say the "floor" is at Y = 500
-        if (playerSprite.getPosition().y > 950.f)
+        // We'll say the "floor" is at Y = 950
+        if (playerSprite.getPosition().y >= 950.f)
         {
+            if (!onGround) // Check if the player was previously airborne
+            {
+                velocity.y = 0; // Stop falling
+                onGround = true; 
+            }
             playerSprite.setPosition(playerSprite.getPosition().x, 950.f);
-            onGround = true;
-            velocity.y = 0; // Stop falling
         }
 
         animTimer += deltaTime;
@@ -171,10 +187,6 @@ int main()
             FRAME_WIDTH,              
             FRAME_HEIGHT              
         ));
-
-        // --- 6. Final Update ---
-        // Move the player based on the final velocity
-        playerSprite.move(velocity * deltaTime);
 
 
         // --- 7. Drawing ---

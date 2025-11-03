@@ -16,7 +16,7 @@ sf::Vector2f velocity(0.f, 0.f); // (x, y) speed
 const float GRAVITY = 1000.f;    // pixels per second, pulling down
 const float MOVE_SPEED = 400.f;  // pixels per second, for left/right
 const float JUMP_SPEED = 500.f;  // pixels per second, for initial jump
-bool onGround = true;
+bool onGround = true; // Checks if is on the ground
 
 
 //Animation Sprite Variables

@@ -8,6 +8,10 @@ Player::Player()
     animFrame = 0;
     animTimer = 0.f;
     currentFrameCount = IDLE_FRAMES;
+
+    sprite.setPosition(100.f, 950.f);
+    sprite.setOrigin(FRAME_WIDTH / 2.f, FRAME_HEIGHT);
+    sprite.setScale(3.f, 3.f);
     
 }
 
@@ -31,10 +35,7 @@ void Player::loadAssets()
 
     // Set the initial texture and setup the sprite
     sprite.setTexture(idleTexture);
-    sprite.setPosition(100.f, 950.f);
-    sprite.setOrigin(FRAME_WIDTH / 2.f, FRAME_HEIGHT);
     sprite.setTextureRect(sf::IntRect(0, 0, FRAME_WIDTH, FRAME_HEIGHT));
-    sprite.setScale(3.f, 3.f);
 }
 
 

@@ -63,7 +63,7 @@ void Player::update(float deltaTime)
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
         velocity.x = MOVE_SPEED;
     
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && onGround){
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && ((onGround && velocity.x == 0.0) || (!onGround))){
         isShooting = true;
     }
     else{

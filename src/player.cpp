@@ -13,15 +13,15 @@ Player::Player()
 // This function loads all the textures the player needs
 void Player::loadAssets()
 {
-    if (!walkTexture.loadFromFile("../assets/Run.png"))
+    if (!walkTexture.loadFromFile("../assets/run.png"))
     {
         std::cerr << "Error loading Run.png" << std::endl;
     }
-    if (!idleTexture.loadFromFile("../assets/Idle.png"))
+    if (!idleTexture.loadFromFile("../assets/idle.png"))
     {
         std::cerr << "Error loading Idle.png" << std::endl;
     }
-    if (!jumpTexture.loadFromFile("../assets/Jump.png"))
+    if (!jumpTexture.loadFromFile("../assets/jump.png"))
     {
         std::cerr << "Error loading Jump.png" << std::endl;
         // Fallback: If Jump.png is missing, just use Idle.png

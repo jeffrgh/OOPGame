@@ -23,9 +23,14 @@ void Player::loadAssets()
     }
     if (!jumpTexture.loadFromFile("../assets/Jump.png"))
     {
-        std::cerr << "Error loading Jump.png (Using Idle as fallback)" << std::endl;
+        std::cerr << "Error loading Jump.png" << std::endl;
         // Fallback: If Jump.png is missing, just use Idle.png
         jumpTexture = idleTexture;
+    }
+    if(!shootTexture.loadFromFile("../assets/Shot.png"))
+    {
+            std::cerr << "Error loading Shot.png " << std::endl;
+            shootTexture = idleTexture;
     }
 
     // Set the initial texture and setup the sprite
@@ -57,6 +62,13 @@ void Player::update(float deltaTime)
         velocity.x = -MOVE_SPEED;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
         velocity.x = MOVE_SPEED;
+    
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Left)){
+        isShooting = true;
+    }
+    else{
+        isShooting = false;
+    }
 
     // --- Sprite Flipping ---
     if (velocity.x > 0.f)
@@ -67,7 +79,13 @@ void Player::update(float deltaTime)
     // --- State Machine (Animation) ---
     const sf::Texture *oldTexture = sprite.getTexture();
 
-    if (!onGround & velocity.x == 0.f)
+
+    if (isShooting)
+    {
+        sprite.setTexture(shootTexture);
+        currentFrameCount = SHOOT_FRAMES;
+    }
+    else if (!onGround & velocity.x == 0.f)
     {
         sprite.setTexture(jumpTexture);
         currentFrameCount = JUMP_FRAMES;
@@ -133,6 +151,8 @@ void Player::update(float deltaTime)
         0, // Row is 0 (as each texture is its own file)
         FRAME_WIDTH,
         FRAME_HEIGHT));
+
+    
 }
 
 // This just draws the sprite to the window

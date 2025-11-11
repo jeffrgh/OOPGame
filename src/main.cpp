@@ -1,6 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
-#include "Player.h" // Player blueprint 
+#include "Player.h"
 
 int main()
 {

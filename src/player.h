@@ -17,10 +17,12 @@ private:
     sf::Texture idleTexture;
     sf::Texture walkTexture;
     sf::Texture jumpTexture;
-    
+    sf::Texture shootTexture;
+
     sf::Vector2f velocity;
     bool onGround;
-    
+    bool isShooting;
+
     int animFrame;
     float animTimer;
     int currentFrameCount;
@@ -35,4 +37,5 @@ private:
     const int IDLE_FRAMES = 6;
     const int RUN_FRAMES = 6;
     const int JUMP_FRAMES = 2;
+    const int SHOOT_FRAMES = 4;
 };

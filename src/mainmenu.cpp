@@ -2,11 +2,10 @@
 #include <iostream>
 
 // Constructor implementation
-MainMenu::MainMenu(sf::Font& font)
+MainMenu::MainMenu(sf::Font &font)
 {
     // Note: We use the font that was passed in
-    
-    // --- Set up the text objects ---
+    //  --- Set up the text objects ---
     titleText.setFont(font);
     titleText.setString("MY GAME");
     titleText.setCharacterSize(50);
@@ -27,7 +26,7 @@ MainMenu::MainMenu(sf::Font& font)
 }
 
 // Event handling implementation
-Menu_Result MainMenu::handleEvent(sf::Event& event, sf::Vector2f mousePos)
+Menu_Result MainMenu::handleEvent(sf::Event &event, sf::Vector2f mousePos)
 {
     // --- 1. Handle Hover Effect ---
     // We do this first, every time, based on mouse position
@@ -68,7 +67,7 @@ Menu_Result MainMenu::handleEvent(sf::Event& event, sf::Vector2f mousePos)
 }
 
 // Drawing implementation
-void MainMenu::draw(sf::RenderWindow& window)
+void MainMenu::draw(sf::RenderWindow &window)
 {
     // Just draw all our text objects to the window
     window.draw(titleText);

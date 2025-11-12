@@ -1,6 +1,13 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include "Player.h"
+#include "mainmenu.h" // K.Tridev Karthik MainMenu File.
+// Game State For Main Menu
+enum class Main_Menu{
+    Nothing,
+    Start,
+    Exit
+};
 
 int main()
 {
@@ -16,6 +23,13 @@ int main()
         return -1;
     }
     backgroundSprite.setTexture(backgroundTexture);
+
+    sf::Font menuFont;
+    if (!menuFont.loadFromFile("MainMenuFont.ttf")) // Or any font file you have
+    {
+        std::cerr << "Error loading MainMenuFont.ttf" << std::endl;
+        return -1;
+    }
 
     // Create the Player 
     Player myPlayer; 

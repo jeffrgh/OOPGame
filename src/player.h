@@ -25,6 +25,7 @@ private:
 
     int animFrame;
     float animTimer;
+    float textureSwitchTimer;
     int currentFrameCount;
     
     // Constants can also be private

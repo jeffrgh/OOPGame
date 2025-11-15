@@ -1,4 +1,4 @@
-#include "Player.h" // Include the blueprint we just made
+#include "player.h" // Include the blueprint we just made
 #include <iostream> // For error messages
 
 Player::Player()
@@ -7,6 +7,7 @@ Player::Player()
     onGround = true;
     animFrame = 0;
     animTimer = 0.f;
+    textureSwitchTimer = 0.f;
     currentFrameCount = IDLE_FRAMES;
 }
 
@@ -80,37 +81,42 @@ void Player::update(float deltaTime)
 
     // --- State Machine (Animation) ---
     const sf::Texture *oldTexture = sprite.getTexture();
+    textureSwitchTimer += deltaTime;
 
-    if (isShooting)
+    if (textureSwitchTimer > 0.1f)
     {
-        sprite.setTexture(shootTexture);
-        currentFrameCount = SHOOT_FRAMES;
-    }
-    else if (!onGround & velocity.x == 0.f)
-    {
-        sprite.setTexture(jumpTexture);
-        currentFrameCount = JUMP_FRAMES;
-    }
-    else if (!onGround & velocity.x != 0.f)
-    {
-        sprite.setTexture(walkTexture);
-        currentFrameCount = JUMP_FRAMES;
-    }
-    else if (velocity.x != 0.f)
-    {
-        sprite.setTexture(walkTexture);
-        currentFrameCount = RUN_FRAMES;
-    }
-    else
-    {
-        sprite.setTexture(idleTexture);
-        currentFrameCount = IDLE_FRAMES;
-    }
-    // If we changed textures, reset the animation
-    if (oldTexture != sprite.getTexture())
-    {
-        animFrame = 0;
-        animTimer = 0.f; // Also reset timer
+        if (isShooting)
+        {
+            sprite.setTexture(shootTexture);
+            currentFrameCount = SHOOT_FRAMES;
+        }
+        else if (!onGround & velocity.x == 0.f)
+        {
+            sprite.setTexture(jumpTexture);
+            currentFrameCount = JUMP_FRAMES;
+        }
+        else if (!onGround & velocity.x != 0.f)
+        {
+            sprite.setTexture(walkTexture);
+            currentFrameCount = JUMP_FRAMES;
+        }
+        else if (velocity.x != 0.f)
+        {
+            sprite.setTexture(walkTexture);
+            currentFrameCount = RUN_FRAMES;
+        }
+        else
+        {
+            sprite.setTexture(idleTexture);
+            currentFrameCount = IDLE_FRAMES;
+        }
+        // If we changed textures, reset the animation
+        if (oldTexture != sprite.getTexture())
+        {
+            animFrame = 0;
+            animTimer = 0.f; // Also reset timer
+            textureSwitchTimer = 0.f;
+        }
     }
 
     // --- Physics (Gravity and Ground Check) ---

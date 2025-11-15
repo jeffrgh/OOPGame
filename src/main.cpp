@@ -1,12 +1,13 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
-#include "Player.h"
-#include "mainmenu.h" // K.Tridev Karthik MainMenu File.
-// Game State For Main Menu
-enum class Main_Menu{
-    Nothing,
-    Start,
-    Exit
+#include "player.h"
+#include "mainMenu.h" // K.Tridev Karthik MainMenu File.
+
+enum class GameState
+{
+    MainMenu,
+    Playing,
+    Exiting
 };
 
 int main()
@@ -25,15 +26,19 @@ int main()
     backgroundSprite.setTexture(backgroundTexture);
 
     sf::Font menuFont;
-    if (!menuFont.loadFromFile("MainMenuFont.ttf")) // Or any font file you have
+    if (!menuFont.loadFromFile("../assets/mainMenuFont.ttf")) // Or any font file you have
     {
-        std::cerr << "Error loading MainMenuFont.ttf" << std::endl;
+        std::cerr << "Error loading mainMenuFont.ttf" << std::endl;
         return -1;
     }
 
-    // Create the Player 
-    Player myPlayer; 
-    myPlayer.loadAssets(); 
+    // Create the Main Menu
+    MainMenu mainMenu(menuFont);
+    GameState currentGameState = GameState::MainMenu;
+
+    // Create the Player
+    Player myPlayer;
+    myPlayer.loadAssets();
 
     sf::Clock gameClock;
 
@@ -48,16 +53,45 @@ int main()
         {
             if (event.type == sf::Event::Closed)
                 window.close();
-            myPlayer.handleEvents(event);
+
+            if (currentGameState == GameState::MainMenu)
+            {
+                sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+                Menu_Result result = mainMenu.handleEvent(event, mousePos);
+                if (result == Menu_Result::Start)
+                {
+                    currentGameState = GameState::Playing;
+                }
+                else if (result == Menu_Result::Exit)
+                {
+                    window.close();
+                }
+            }
+            else if (currentGameState == GameState::Playing)
+            {
+                myPlayer.handleEvents(event);
+            }
         }
 
-        // Just tell the player to update itself!
-        myPlayer.update(deltaTime);
+        // Update based on game state
+        if (currentGameState == GameState::Playing)
+        {
+            myPlayer.update(deltaTime);
+        }
 
         // Drawing frame by frame
         window.clear();
         window.draw(backgroundSprite);
-        myPlayer.draw(window); // Tell the player to draw itself
+
+        if (currentGameState == GameState::MainMenu)
+        {
+            mainMenu.draw(window);
+        }
+        else if (currentGameState == GameState::Playing)
+        {
+            myPlayer.draw(window); // Tell the player to draw itself
+        }
+
         window.display();
     }
 

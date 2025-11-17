@@ -132,6 +132,7 @@ int main()
             myPlayer.update(deltaTime, bulletList, bulletTexture);
             for (int i = 0; i < bulletList.size(); i++){
                 bulletList[i].update(deltaTime);
+            }
 
             if (showTutorial && tutorialTimer.getElapsedTime().asSeconds() > 10.0f) {
                 showTutorial = false;
@@ -148,12 +149,13 @@ int main()
         }
         else if (currentGameState == GameState::Playing)
         {
+            window.draw(backgroundSprite);
             myPlayer.draw(window); // Tell the player to draw itself
+
             for (int i = 0; i < bulletList.size(); i++){
                 bulletList[i].draw(window);
             }
-            window.draw(backgroundSprite);
-            myPlayer.draw(window);
+            
             if (showTutorial)
             {
                 move.draw(window);

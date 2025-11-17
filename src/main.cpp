@@ -7,7 +7,7 @@
 #include "movementTutorial.h"
 
 
-#include "Shooting.h" // Shooting files yet to be commited
+#include "shooting.h" // Shooting files yet to be commited
 
 
 enum class GameState
@@ -43,7 +43,7 @@ int main()
         std::cerr << "Error loading mainMenuFont.ttf" << std::endl;
         return -1;
     }
-    if (!bulletTexture.loadFromFile("../assets/Bullet.png")) // (Needs "Bullet.png")
+    if (!bulletTexture.loadFromFile("../assets/Bullet.jpg")) // (Needs "Bullet.png")
     {
         std::cerr << "Error loading Bullet.png" << std::endl;
         return -1;
@@ -132,7 +132,7 @@ int main()
             myPlayer.update(deltaTime, bulletList, bulletTexture);
             for (int i = 0; i < bulletList.size(); i++){
                 bulletList[i].update(deltaTime);
-            myPlayer.update(deltaTime);
+            }
 
             if (showTutorial && tutorialTimer.getElapsedTime().asSeconds() > 10.0f) {
                 showTutorial = false;
@@ -149,12 +149,13 @@ int main()
         }
         else if (currentGameState == GameState::Playing)
         {
+            window.draw(backgroundSprite);
             myPlayer.draw(window); // Tell the player to draw itself
+
             for (int i = 0; i < bulletList.size(); i++){
                 bulletList[i].draw(window);
             }
-            window.draw(backgroundSprite);
-            myPlayer.draw(window);
+            
             if (showTutorial)
             {
                 move.draw(window);

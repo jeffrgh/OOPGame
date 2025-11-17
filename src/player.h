@@ -1,6 +1,6 @@
 #pragma once // Stops this file from being included multiple times
 #include <SFML/Graphics.hpp>
-
+#include "Shooting.h" 
 class Player
 {
 // --- PUBLIC FUNCTIONS (What other files can tell the Player to do) ---
@@ -8,7 +8,7 @@ public:
     Player(); // The "Constructor": called when a new Player is created
     void loadAssets(); // A function to load all our textures
     void handleEvents(sf::Event event); // Handles one-shot inputs like jump
-    void update(float deltaTime);     // Updates all physics, input, and animation
+    void update(float deltaTime, std::vector<Bullet>& bulletList, sf::Texture& bulletTexture);     // Updates all physics, input, and animation
     void draw(sf::RenderWindow& window); // Draws the player to the window
 
 // --- PRIVATE DATA (Stuff the Player manages for itself) ---

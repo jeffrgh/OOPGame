@@ -43,7 +43,7 @@ int main()
         std::cerr << "Error loading mainMenuFont.ttf" << std::endl;
         return -1;
     }
-    if (!bulletTexture.loadFromFile("../assets/Bullet.png")) // (Needs "Bullet.png")
+    if (!bulletTexture.loadFromFile("../assets/Bullet.jpg")) // (Needs "Bullet.png")
     {
         std::cerr << "Error loading Bullet.png" << std::endl;
         return -1;

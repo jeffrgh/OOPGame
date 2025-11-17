@@ -132,7 +132,6 @@ int main()
             myPlayer.update(deltaTime, bulletList, bulletTexture);
             for (int i = 0; i < bulletList.size(); i++){
                 bulletList[i].update(deltaTime);
-            myPlayer.update(deltaTime);
 
             if (showTutorial && tutorialTimer.getElapsedTime().asSeconds() > 10.0f) {
                 showTutorial = false;

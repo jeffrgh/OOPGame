@@ -18,6 +18,9 @@ public:
 
 private:
     sf::Text titleText;
+    sf::Text creditsText;
     sf::Text startButton;
     sf::Text exitButton;
+    sf::Texture bgTexture;
+    sf::Sprite bgSprite;
 };

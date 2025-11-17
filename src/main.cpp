@@ -1,12 +1,17 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include "player.h"
-#include "mainMenu.h" // K.Tridev Karthik MainMenu File.
+#include "mainMenu.h"
+#include "pauseMenu.h"
+#include "movementTutorial.h"
+
+
 
 enum class GameState
 {
     MainMenu,
     Playing,
+    PAUSED,
     Exiting
 };
 
@@ -34,6 +39,8 @@ int main()
 
     // Create the Main Menu
     MainMenu mainMenu(menuFont);
+    PauseMenu pauseMenu(menuFont);  
+    movementTutorial move(menuFont);
     GameState currentGameState = GameState::MainMenu;
 
     // Create the Player
@@ -41,12 +48,21 @@ int main()
     myPlayer.loadAssets();
 
     sf::Clock gameClock;
+    bool showTutorial = false;
+    sf::Clock tutorialTimer;
 
     // The Game Loop
     while (window.isOpen())
     {
-        float deltaTime = gameClock.restart().asSeconds();
-
+       float deltaTime = 0.0f;
+        if (currentGameState == GameState::Playing)
+        {
+            deltaTime = gameClock.restart().asSeconds();
+        }
+        else
+        {
+            gameClock.restart();  // keep restarting the time so it doesnt build up....
+        }
         // Handle Events
         sf::Event event;
         while (window.pollEvent(event))
@@ -61,7 +77,10 @@ int main()
                 if (result == Menu_Result::Start)
                 {
                     currentGameState = GameState::Playing;
+                    showTutorial = true;
+                    tutorialTimer.restart();
                 }
+        
                 else if (result == Menu_Result::Exit)
                 {
                     window.close();
@@ -70,6 +89,28 @@ int main()
             else if (currentGameState == GameState::Playing)
             {
                 myPlayer.handleEvents(event);
+                if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape)
+                {
+                    currentGameState = GameState::PAUSED;
+                }
+                else if (event.type == sf::Event::KeyPressed && (event.key.code == sf :: Keyboard :: W || event.key.code == sf :: Keyboard :: A|| event.key.code == sf :: Keyboard :: S || event.key.code == sf :: Keyboard :: D)) {
+                    showTutorial = false;
+                }
+            }
+            else if (currentGameState == GameState::PAUSED)
+            {
+                sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+                Pause_Result result = pauseMenu.handleEvent(event, mousePos);
+
+                if (result == Pause_Result::Resume)
+                {
+                    currentGameState = GameState::Playing;
+                }
+                else if (result == Pause_Result::QuitToMenu)
+                {
+                    currentGameState = GameState::MainMenu;
+                }
+                
             }
         }
 
@@ -77,11 +118,15 @@ int main()
         if (currentGameState == GameState::Playing)
         {
             myPlayer.update(deltaTime);
+
+            if (showTutorial && tutorialTimer.getElapsedTime().asSeconds() > 10.0f) {
+                showTutorial = false;
+            }
         }
 
         // Drawing frame by frame
         window.clear();
-        window.draw(backgroundSprite);
+        
 
         if (currentGameState == GameState::MainMenu)
         {
@@ -89,8 +134,22 @@ int main()
         }
         else if (currentGameState == GameState::Playing)
         {
-            myPlayer.draw(window); // Tell the player to draw itself
+            window.draw(backgroundSprite);
+            myPlayer.draw(window);
+            if (showTutorial)
+            {
+                move.draw(window);
+            } // Tell the player to draw itself
         }
+
+        else if (currentGameState == GameState::PAUSED)
+            {
+                // Draw the "frozen" game world first
+                window.draw(backgroundSprite);
+                myPlayer.draw(window);
+                pauseMenu.draw(window);
+                
+            }
 
         window.display();
     }

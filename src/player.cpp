@@ -47,7 +47,7 @@ void Player::handleEvents(sf::Event event)
 {
     if (event.type == sf::Event::KeyPressed)
     {
-        if ((event.key.code == sf::Keyboard::Space || event.key.code == sf::Keyboard::Up) && onGround)
+        if ((event.key.code == sf::Keyboard::W || event.key.code == sf::Keyboard::Up) && onGround)
         {
             velocity.y = -JUMP_SPEED;
             onGround = false;
@@ -59,12 +59,12 @@ void Player::update(float deltaTime)
 {
     // --- Real-Time Input (Walking) ---
     velocity.x = 0.f;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::A))
         velocity.x = -MOVE_SPEED;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)|| sf::Keyboard::isKeyPressed(sf::Keyboard::D))
         velocity.x = MOVE_SPEED;
 
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && velocity.x == 0)
+    if ((sf::Mouse::isButtonPressed(sf::Mouse::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Space) ) && velocity.x == 0 )
     {
         isShooting = true;
     }

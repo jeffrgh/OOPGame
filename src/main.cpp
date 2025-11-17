@@ -1,10 +1,13 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include <vector>
 #include "player.h"
 #include "mainMenu.h"
 #include "pauseMenu.h"
 #include "movementTutorial.h"
 
+
+#include "Shooting.h" // Shooting files yet to be commited
 
 
 enum class GameState
@@ -14,6 +17,10 @@ enum class GameState
     PAUSED,
     Exiting
 };
+
+sf::Texture bulletTexture;
+std::vector<Bullet> bulletList;
+
 
 int main()
 {
@@ -34,6 +41,11 @@ int main()
     if (!menuFont.loadFromFile("../assets/mainMenuFont.ttf")) // Or any font file you have
     {
         std::cerr << "Error loading mainMenuFont.ttf" << std::endl;
+        return -1;
+    }
+    if (!bulletTexture.loadFromFile("../assets/Bullet.png")) // (Needs "Bullet.png")
+    {
+        std::cerr << "Error loading Bullet.png" << std::endl;
         return -1;
     }
 

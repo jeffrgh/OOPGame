@@ -7,7 +7,7 @@
 #include "movementTutorial.h"
 
 
-#include "Shooting.h" // Shooting files yet to be commited
+#include "shooting.h" // Shooting files yet to be commited
 
 
 enum class GameState
@@ -173,4 +173,4 @@ int main()
     }
 
     return 0;
-}
+}}

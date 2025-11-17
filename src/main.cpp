@@ -88,7 +88,10 @@ int main()
         // Update based on game state
         if (currentGameState == GameState::Playing)
         {
-            myPlayer.update(deltaTime);
+            myPlayer.update(deltaTime, bulletList, bulletTexture);
+            for (int i = 0; i < bulletList.size(); i++){
+                bulletList[i].update(deltaTime);
+            }
         }
 
         // Drawing frame by frame
@@ -102,6 +105,9 @@ int main()
         else if (currentGameState == GameState::Playing)
         {
             myPlayer.draw(window); // Tell the player to draw itself
+            for (int i = 0; i < bulletList.size(); i++){
+                bulletList[i].draw(window);
+            }
         }
 
         window.display();

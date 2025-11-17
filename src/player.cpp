@@ -1,5 +1,6 @@
 #include "player.h" // Include the blueprint we just made
-#include <iostream> // For error messages
+#include <iostream>
+#include "Shooting.h" 
 
 Player::Player()
 {
@@ -55,7 +56,7 @@ void Player::handleEvents(sf::Event event)
     }
 }
 
-void Player::update(float deltaTime)
+void Player::update(float deltaTime, std::vector<Bullet>& bulletList, sf::Texture& bulletTexture)
 {
     // --- Real-Time Input (Walking) ---
     velocity.x = 0.f;
@@ -151,6 +152,8 @@ void Player::update(float deltaTime)
             animFrame = 0;
         }
     }
+
+
 
     // --- Update the "cookie cutter" ---
     sprite.setTextureRect(sf::IntRect(

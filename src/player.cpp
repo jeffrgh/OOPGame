@@ -1,7 +1,7 @@
 #include "player.h" // Include the blueprint we just made
 #include <iostream>
 #include <algorithm>
-#include "Shooting.h"
+#include "shooting.h"
 
 Player::Player()
 {

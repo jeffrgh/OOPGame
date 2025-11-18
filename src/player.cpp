@@ -210,14 +210,14 @@ void Player::draw(sf::RenderWindow &window)
 {
     window.draw(sprite);
 
-    sf::RectangleShape debugBox;
-    sf::FloatRect bounds = getBounds();
-    debugBox.setPosition(bounds.left, bounds.top);
-    debugBox.setSize(sf::Vector2f(bounds.width, bounds.height));
-    debugBox.setFillColor(sf::Color::Transparent);
-    debugBox.setOutlineColor(sf::Color::Red);
-    debugBox.setOutlineThickness(2);
-    window.draw(debugBox);
+    // sf::RectangleShape debugBox;
+    // sf::FloatRect bounds = getBounds();
+    // debugBox.setPosition(bounds.left, bounds.top);
+    // debugBox.setSize(sf::Vector2f(bounds.width, bounds.height));
+    // debugBox.setFillColor(sf::Color::Transparent);
+    // debugBox.setOutlineColor(sf::Color::Red);
+    // debugBox.setOutlineThickness(2);
+    // window.draw(debugBox);
 }
 
 sf::Vector2f Player::getPosition()

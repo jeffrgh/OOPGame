@@ -6,9 +6,7 @@
 #include "pauseMenu.h"
 #include "movementTutorial.h"
 
-
 #include "shooting.h" // Shooting files yet to be commited
-
 
 enum class GameState
 {
@@ -20,7 +18,6 @@ enum class GameState
 
 sf::Texture bulletTexture;
 std::vector<Bullet> bulletList;
-
 
 int main()
 {
@@ -54,7 +51,7 @@ int main()
 
     // Create the Main Menu
     MainMenu mainMenu(menuFont);
-    PauseMenu pauseMenu(menuFont);  
+    PauseMenu pauseMenu(menuFont);
     movementTutorial move(menuFont);
     GameState currentGameState = GameState::MainMenu;
 
@@ -69,14 +66,14 @@ int main()
     // The Game Loop
     while (window.isOpen())
     {
-       float deltaTime = 0.0f;
+        float deltaTime = 0.0f;
         if (currentGameState == GameState::Playing)
         {
             deltaTime = gameClock.restart().asSeconds();
         }
         else
         {
-            gameClock.restart();  // keep restarting the time so it doesnt build up....
+            gameClock.restart(); // keep restarting the time so it doesnt build up....
         }
         // Handle Events
         sf::Event event;
@@ -95,7 +92,7 @@ int main()
                     showTutorial = true;
                     tutorialTimer.restart();
                 }
-        
+
                 else if (result == Menu_Result::Exit)
                 {
                     window.close();
@@ -108,7 +105,8 @@ int main()
                 {
                     currentGameState = GameState::PAUSED;
                 }
-                else if (event.type == sf::Event::KeyPressed && (event.key.code == sf :: Keyboard :: W || event.key.code == sf :: Keyboard :: A|| event.key.code == sf :: Keyboard :: S || event.key.code == sf :: Keyboard :: D)) {
+                else if (event.type == sf::Event::KeyPressed && (event.key.code == sf ::Keyboard ::W || event.key.code == sf ::Keyboard ::A || event.key.code == sf ::Keyboard ::S || event.key.code == sf ::Keyboard ::D))
+                {
                     showTutorial = false;
                 }
             }
@@ -127,7 +125,6 @@ int main()
                     currentGameState = GameState::MainMenu;
                     camera.setCenter(1920.f / 2.f, 1080.f / 2.f);
                 }
-                
             }
         }
 
@@ -135,18 +132,19 @@ int main()
         if (currentGameState == GameState::Playing)
         {
             myPlayer.update(deltaTime, bulletList, bulletTexture);
-            for (int i = 0; i < bulletList.size(); i++){
+            for (int i = 0; i < bulletList.size(); i++)
+            {
                 bulletList[i].update(deltaTime);
             }
 
-            if (showTutorial && tutorialTimer.getElapsedTime().asSeconds() > 10.0f) {
+            if (showTutorial && tutorialTimer.getElapsedTime().asSeconds() > 10.0f)
+            {
                 showTutorial = false;
             }
         }
 
         // Drawing frame by frame
         window.clear();
-        
 
         if (currentGameState == GameState::MainMenu)
         {
@@ -159,10 +157,11 @@ int main()
             window.draw(backgroundSprite);
             myPlayer.draw(window); // Tell the player to draw itself
 
-            for (int i = 0; i < bulletList.size(); i++){
+            for (int i = 0; i < bulletList.size(); i++)
+            {
                 bulletList[i].draw(window);
             }
-            
+
             if (showTutorial)
             {
                 window.setView(window.getDefaultView());
@@ -171,18 +170,17 @@ int main()
         }
 
         else if (currentGameState == GameState::PAUSED)
-            {
-                // Draw the "frozen" game world first
-                window.setView(camera);
-                window.draw(backgroundSprite);
-                myPlayer.draw(window);
-                window.setView(window.getDefaultView());
-                pauseMenu.draw(window);
-                
-            }
+        {
+            // Draw the "frozen" game world first
+            window.setView(camera);
+            window.draw(backgroundSprite);
+            myPlayer.draw(window);
+            window.setView(window.getDefaultView());
+            pauseMenu.draw(window);
+        }
 
         window.display();
     }
 
     return 0;
-}}
+}

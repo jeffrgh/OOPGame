@@ -25,8 +25,11 @@ std::vector<Bullet> bulletList;
 int main()
 {
     // Setup Window and Background
-    sf::RenderWindow window(sf::VideoMode(1536, 1024), "Extraction");
+    sf::RenderWindow window(sf::VideoMode(1920, 1080), "Extraction Game Thing");
     window.setFramerateLimit(30);
+
+    // Adding camera here
+    sf::View camera(sf::FloatRect(0.f, 0.f, 1536.f, 1024.f));
 
     sf::Texture backgroundTexture;
     sf::Sprite backgroundSprite;
@@ -111,6 +114,7 @@ int main()
             }
             else if (currentGameState == GameState::PAUSED)
             {
+                window.setView(window.getDefaultView());
                 sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
                 Pause_Result result = pauseMenu.handleEvent(event, mousePos);
 
@@ -121,6 +125,7 @@ int main()
                 else if (result == Pause_Result::QuitToMenu)
                 {
                     currentGameState = GameState::MainMenu;
+                    camera.setCenter(1920.f / 2.f, 1080.f / 2.f);
                 }
                 
             }
@@ -145,10 +150,12 @@ int main()
 
         if (currentGameState == GameState::MainMenu)
         {
+            window.setView(window.getDefaultView());
             mainMenu.draw(window);
         }
         else if (currentGameState == GameState::Playing)
         {
+            window.setView(camera);
             window.draw(backgroundSprite);
             myPlayer.draw(window); // Tell the player to draw itself
 
@@ -158,6 +165,7 @@ int main()
             
             if (showTutorial)
             {
+                window.setView(window.getDefaultView());
                 move.draw(window);
             } // Tell the player to draw itself
         }
@@ -165,8 +173,10 @@ int main()
         else if (currentGameState == GameState::PAUSED)
             {
                 // Draw the "frozen" game world first
+                window.setView(camera);
                 window.draw(backgroundSprite);
                 myPlayer.draw(window);
+                window.setView(window.getDefaultView());
                 pauseMenu.draw(window);
                 
             }

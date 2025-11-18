@@ -168,3 +168,7 @@ void Player::draw(sf::RenderWindow &window)
 {
     window.draw(sprite);
 }
+
+sf::Vector2f Player::getPosition() {
+    return sprite.getPosition();
+};

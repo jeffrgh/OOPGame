@@ -5,6 +5,7 @@
 #include "mainMenu.h"
 #include "pauseMenu.h"
 #include "movementTutorial.h"
+#include "gameObject.h"
 
 #include "shooting.h" // Shooting files yet to be commited
 
@@ -61,6 +62,10 @@ int main()
     // Create the Player
     Player myPlayer;
     myPlayer.loadAssets();
+
+    // Create a ground object for the player to collide with
+    std::vector<GameObject> gameObjects;
+    gameObjects.emplace_back(sf::Vector2f(800.f, 850.f), sf::Vector2f(400.f, 80.f));
 
     sf::Clock gameClock;
     bool showTutorial = false;
@@ -134,7 +139,7 @@ int main()
         // Update based on game state
         if (currentGameState == GameState::Playing)
         {
-            myPlayer.update(deltaTime, bulletList, bulletTexture);
+            myPlayer.update(deltaTime, bulletList, bulletTexture, gameObjects);
             for (int i = 0; i < bulletList.size(); i++)
             {
                 bulletList[i].update(deltaTime);
@@ -188,6 +193,12 @@ int main()
             window.draw(backgroundSprite);
             myPlayer.draw(window); // Tell the player to draw itself
 
+            // Draw all game objects
+            for (const auto &obj : gameObjects)
+            {
+                obj.draw(window);
+            }
+
             for (int i = 0; i < bulletList.size(); i++)
             {
                 bulletList[i].draw(window);
@@ -206,6 +217,10 @@ int main()
             window.setView(camera);
             window.draw(backgroundSprite);
             myPlayer.draw(window);
+            for (const auto &obj : gameObjects)
+            {
+                obj.draw(window);
+            }
             window.setView(window.getDefaultView());
             pauseMenu.draw(window);
         }

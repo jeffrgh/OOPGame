@@ -25,8 +25,9 @@ int main()
     sf::RenderWindow window(sf::VideoMode(1920, 1080), "Extraction Game Thing");
     window.setFramerateLimit(30);
 
-    // Adding camera here
-    sf::View camera(sf::FloatRect(0.f, 0.f, 1536.f, 1024.f));
+    // Setup camera to match the window size
+    sf::View camera = window.getDefaultView();
+    camera.setCenter(window.getSize().x / 2.f, window.getSize().y / 2.f);
 
     sf::Texture backgroundTexture;
     sf::Sprite backgroundSprite;
@@ -36,6 +37,8 @@ int main()
         return -1;
     }
     backgroundSprite.setTexture(backgroundTexture);
+    backgroundTexture.setRepeated(true);
+    backgroundSprite.setTextureRect(sf::IntRect(0, 0, 10000, 1080));
 
     sf::Font menuFont;
     if (!menuFont.loadFromFile("../assets/mainMenuFont.ttf")) // Or any font file you have
@@ -123,7 +126,7 @@ int main()
                 else if (result == Pause_Result::QuitToMenu)
                 {
                     currentGameState = GameState::MainMenu;
-                    camera.setCenter(1920.f / 2.f, 1080.f / 2.f);
+                    camera.setCenter(window.getDefaultView().getCenter());
                 }
             }
         }
@@ -141,6 +144,34 @@ int main()
             {
                 showTutorial = false;
             }
+
+            // Code for camera movement
+
+            sf::Vector2f playerPosition = myPlayer.getPosition();
+
+            float halfViewWidth = camera.getSize().x / 2.f;
+            float cameraX = camera.getCenter().x;
+            const float margin = 950.f; // start scrolling when player gets this close to edge
+
+            // If player gets near the right edge of the view, move the camera right
+            if (playerPosition.x > camera.getCenter().x + halfViewWidth - margin)
+            {
+                cameraX = playerPosition.x - (halfViewWidth - margin);
+            }
+            // If player gets near the left edge of the view, move the camera left
+            else if (playerPosition.x < camera.getCenter().x - halfViewWidth + margin)
+            {
+                cameraX = playerPosition.x + (halfViewWidth - margin);
+            }
+
+            // Clamp camera to the background/map bounds
+            float mapWidth = 10000.f; // matches backgroundSprite texture rect width
+            if (cameraX < halfViewWidth)
+                cameraX = halfViewWidth;
+            if (cameraX > mapWidth - halfViewWidth)
+                cameraX = mapWidth - halfViewWidth;
+
+            camera.setCenter(cameraX, camera.getCenter().y);
         }
 
         // Drawing frame by frame

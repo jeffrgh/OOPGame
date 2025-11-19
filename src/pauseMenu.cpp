@@ -1,15 +1,15 @@
-#include "PauseMenu.h"
+#include "pauseMenu.h"
 #include <iostream>
 
 // Constructor implementation
-PauseMenu::PauseMenu(sf::Font& font)
+PauseMenu::PauseMenu(sf::Font &font)
 {
     // --- Set up the background dim ---
     // This shape will cover the whole screen
-    backgroundDim.setSize(sf::Vector2f(1536, 1024)); // Use your window's size
+    backgroundDim.setSize(sf::Vector2f(1536, 1024));     // Use your window's size
     backgroundDim.setFillColor(sf::Color(0, 0, 0, 150)); // Black, 150/255 opacity
 
-    //Paused Title.
+    // Paused Title.
     pauseTitle.setFont(font);
     pauseTitle.setString("PAUSED");
     pauseTitle.setCharacterSize(80);
@@ -36,7 +36,7 @@ PauseMenu::PauseMenu(sf::Font& font)
 }
 
 // Event handling implementation
-Pause_Result PauseMenu::handleEvent(sf::Event& event, sf::Vector2f mousePos)
+Pause_Result PauseMenu::handleEvent(sf::Event &event, sf::Vector2f mousePos)
 {
     // --- 1. Handle Hover Effect ---
     resumeButton.setFillColor(sf::Color::White);
@@ -74,7 +74,7 @@ Pause_Result PauseMenu::handleEvent(sf::Event& event, sf::Vector2f mousePos)
 }
 
 // Drawing implementation
-void PauseMenu::draw(sf::RenderWindow& window)
+void PauseMenu::draw(sf::RenderWindow &window)
 {
     // Draw the dim background FIRST
     window.draw(backgroundDim);

@@ -20,7 +20,7 @@ public:
         this->currentHealth = maxHealth;
 
         // Load health bar sprite sheet
-        if (!healthTexture.loadFromFile("health_bar.png")) {
+        if (!healthTexture.loadFromFile("../assets/health_bar.png")) {
             throw std::runtime_error("Could not load health_spritesheet.png");
         }
 

@@ -6,6 +6,7 @@
 #include "pauseMenu.h"
 #include "movementTutorial.h"
 #include "gameObject.h"
+#include "HUD.hpp"
 
 #include "shooting.h" // Shooting files yet to be commited
 
@@ -19,6 +20,7 @@ enum class GameState
 
 sf::Texture bulletTexture;
 std::vector<Bullet> bulletList;
+HUD hud(100.f);
 
 int main()
 {
@@ -89,7 +91,12 @@ int main()
         {
             if (event.type == sf::Event::Closed)
                 window.close();
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+                hud.damage(1);   // hold A to damage
 
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+                hud.heal(1); 
+                
             if (currentGameState == GameState::MainMenu)
             {
                 sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
@@ -179,6 +186,8 @@ int main()
             camera.setCenter(cameraX, camera.getCenter().y);
         }
 
+        sf::RenderWindow window(sf::VideoMode(800, 600), "Animated HUD Health Bar");
+
         // Drawing frame by frame
         window.clear();
 
@@ -225,8 +234,11 @@ int main()
             pauseMenu.draw(window);
         }
 
+        hud.draw(window);
+
         window.display();
     }
+
 
     return 0;
 }

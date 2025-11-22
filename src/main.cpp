@@ -1,4 +1,5 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include <iostream>
 #include <vector>
 #include "player.h"
@@ -20,6 +21,10 @@ enum class GameState
 
 sf::Texture bulletTexture;
 std::vector<Bullet> bulletList;
+sf::Music menuMusic;
+sf::Font menuFont;
+sf::Texture backgroundTexture;
+sf::Sprite backgroundSprite;
 
 
 int main()
@@ -28,8 +33,6 @@ int main()
     sf::RenderWindow window(sf::VideoMode(1536, 1024), "Extraction");
     window.setFramerateLimit(30);
 
-    sf::Texture backgroundTexture;
-    sf::Sprite backgroundSprite;
     if (!backgroundTexture.loadFromFile("../assets/back.png"))
     {
         std::cerr << "Error loading background.png" << std::endl;
@@ -37,7 +40,12 @@ int main()
     }
     backgroundSprite.setTexture(backgroundTexture);
 
-    sf::Font menuFont;
+    // Replace "menu_music.ogg" with your actual file name
+    if (!menuMusic.openFromFile("../assets/menutheme.mp3")) 
+    {
+        std::cerr << "Error loading menu music!" << std::endl;
+    }
+
     if (!menuFont.loadFromFile("../assets/mainMenuFont.ttf")) // Or any font file you have
     {
         std::cerr << "Error loading mainMenuFont.ttf" << std::endl;
@@ -54,6 +62,11 @@ int main()
     PauseMenu pauseMenu(menuFont);  
     movementTutorial move(menuFont);
     GameState currentGameState = GameState::MainMenu;
+
+    // Create The Main Menu Music
+    menuMusic.setLoop(true); // Make it repeat forever
+    menuMusic.setVolume(50.f); // Set volume (0 to 100)
+    menuMusic.play(); // Start playing immediately
 
     // Create the Player
     Player myPlayer;
@@ -89,6 +102,7 @@ int main()
                 if (result == Menu_Result::Start)
                 {
                     currentGameState = GameState::Playing;
+                    menuMusic.stop();
                     showTutorial = true;
                     tutorialTimer.restart();
                 }
@@ -121,6 +135,7 @@ int main()
                 else if (result == Pause_Result::QuitToMenu)
                 {
                     currentGameState = GameState::MainMenu;
+                    menuMusic.play();
                 }
                 
             }
@@ -175,4 +190,4 @@ int main()
     }
 
     return 0;
-}}
+}

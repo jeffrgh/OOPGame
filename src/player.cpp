@@ -57,11 +57,14 @@ void Player::handleEvents(sf::Event event)
     }
 }
 
-void Player::update(float deltaTime, std::vector<Bullet> &bulletList, sf::Texture &bulletTexture, std::vector<GameObject> &gameObjects)
+void Player::update(float deltaTime, std::vector<Bullet> &bullets, sf::Texture &bulletTexture, std::vector<GameObject> &gameObjects)
 {
     onGround = false;
     // --- Real-Time Input (Walking) ---
     velocity.x = 0.f;
+
+    static bool isFiring = false;
+
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::A))
         velocity.x = -MOVE_SPEED;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::D))
@@ -69,11 +72,17 @@ void Player::update(float deltaTime, std::vector<Bullet> &bulletList, sf::Textur
 
     if ((sf::Mouse::isButtonPressed(sf::Mouse::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) && velocity.x == 0)
     {
-        isShooting = true;
+        if (!isFiring){
+            float direction = (sprite.getScale().x > 0 ) ? 1.0f : -1.0f;
+            sf::Vector2f spawnPos = sprite.getPosition();
+            spawnPos.y -= sprite.getGlobalBounds().height /2.0f;
+            bullets.push_back(Bullet(bulletTexture, spawnPos, direction));
+            isFiring = true;
+        }
     }
     else
     {
-        isShooting = false;
+        isFiring = false;
     }
 
     // --- Sprite Flipping ---
@@ -197,7 +206,6 @@ void Player::update(float deltaTime, std::vector<Bullet> &bulletList, sf::Textur
         }
     }
 
-    // --- Update the "cookie cutter" ---
     sprite.setTextureRect(sf::IntRect(
         animFrame * FRAME_WIDTH,
         0, // Row is 0 (as each texture is its own file)

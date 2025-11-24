@@ -4,7 +4,7 @@ GameObject::GameObject(sf::Vector2f position, sf::Vector2f size)
 {
 	shape.setSize(size);
 	shape.setPosition(position);
-	shape.setFillColor(sf::Color::Cyan);
+	shape.setFillColor(sf::Color::Red);
 	shape.setOutlineThickness(2.f);
 	shape.setOutlineColor(sf::Color::Blue);
 }

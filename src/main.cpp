@@ -6,8 +6,7 @@
 #include "pauseMenu.h"
 #include "movementTutorial.h"
 #include "gameObject.h"
-
-#include "shooting.h" // Shooting files yet to be commited
+#include "shooting.h" 
 
 enum class GameState
 {
@@ -18,7 +17,7 @@ enum class GameState
 };
 
 sf::Texture bulletTexture;
-std::vector<Bullet> bulletList;
+std::vector<Bullet> bullets;
 
 int main()
 {
@@ -139,10 +138,10 @@ int main()
         // Update based on game state
         if (currentGameState == GameState::Playing)
         {
-            myPlayer.update(deltaTime, bulletList, bulletTexture, gameObjects);
-            for (int i = 0; i < bulletList.size(); i++)
+            myPlayer.update(deltaTime, bullets, bulletTexture, gameObjects);
+            for (int i = 0; i < bullets.size(); i++)
             {
-                bulletList[i].update(deltaTime);
+                bullets[i].update(deltaTime);
             }
 
             if (showTutorial && tutorialTimer.getElapsedTime().asSeconds() > 10.0f)
@@ -199,9 +198,9 @@ int main()
                 obj.draw(window);
             }
 
-            for (int i = 0; i < bulletList.size(); i++)
+            for (int i = 0; i < bullets.size(); i++)
             {
-                bulletList[i].draw(window);
+                bullets[i].draw(window);
             }
 
             if (showTutorial)

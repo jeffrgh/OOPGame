@@ -9,7 +9,7 @@ public:
     Player();                                                                                                                        // The "Constructor": called when a new Player is created
     void loadAssets();                                                                                                               // A function to load all our textures
     void handleEvents(sf::Event event);                                                                                              // Handles one-shot inputs like jump
-    void update(float deltaTime, std::vector<Bullet> &bulletList, sf::Texture &bulletTexture, std::vector<GameObject> &gameObjects); // Updates all physics, input, and animation
+    void update(float deltaTime, std::vector<Bullet> &bullets, sf::Texture &bulletTexture, std::vector<GameObject> &gameObjects); // Updates all physics, input, and animation
     void draw(sf::RenderWindow &window);                                                                                             // Draws the player to Rendethe w
     sf::Vector2f getPosition();
     sf::FloatRect getBounds() const;

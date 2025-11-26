@@ -8,6 +8,11 @@ Bullet::Bullet(sf::Texture &texture, sf::Vector2f startPos, float direction)
     // Set the bullet's velocity based on the direction
     velocity.x = BULLET_SPEED * direction;
     velocity.y = 0.f; // No vertical movement
+    
+    if (direction < 0)
+    {
+        bulletsprite.setScale(-1.f, 1.f);
+    }
 }
 
 void Bullet::update(float deltaTime)

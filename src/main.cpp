@@ -7,7 +7,7 @@
 #include "pauseMenu.h"
 #include "movementTutorial.h"
 #include "gameObject.h"
-#include "shooting.h" 
+#include "shooting.h"
 
 enum class GameState
 {
@@ -48,7 +48,7 @@ int main()
     backgroundSprite.setTextureRect(sf::IntRect(0, 0, 10000, 1080));
 
     // Replace "menu_music.ogg" with your actual file name
-    if (!menuMusic.openFromFile("../assets/menutheme.mp3")) 
+    if (!menuMusic.openFromFile("../assets/menutheme.mp3"))
     {
         std::cerr << "Error loading menu music!" << std::endl;
     }
@@ -71,9 +71,9 @@ int main()
     GameState currentGameState = GameState::MainMenu;
 
     // Create The Main Menu Music
-    menuMusic.setLoop(true); // Make it repeat forever
+    menuMusic.setLoop(true);   // Make it repeat forever
     menuMusic.setVolume(50.f); // Set volume (0 to 100)
-    menuMusic.play(); // Start playing immediately
+    menuMusic.play();          // Start playing immediately
 
     // Create the Player
     Player myPlayer;
@@ -247,5 +247,4 @@ int main()
     }
 
     return 0;
-}
 }

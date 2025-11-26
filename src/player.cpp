@@ -1,6 +1,7 @@
 #include <iostream>
 #include "player.h"
-#include "Shooting.h" // Assuming this defines the Bullet structure
+#include <algorithm>
+#include "shooting.h" // Assuming this defines the Bullet structure
 
 Player::Player()
 {
@@ -87,7 +88,7 @@ void Player::handleEvents(sf::Event event)
     }
 }
 
-void Player::update(float deltaTime, std::vector<Bullet>& bulletList, sf::Texture& bulletTexture)
+void Player::update(float deltaTime, std::vector<Bullet> &bullets, sf::Texture &bulletTexture, std::vector<GameObject> &gameObjects)
 {
     // --- 1. INPUT TRACKING ---
     bool isMoving = sf::Keyboard::isKeyPressed(sf::Keyboard::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::D) ||
@@ -143,6 +144,25 @@ void Player::update(float deltaTime, std::vector<Bullet>& bulletList, sf::Textur
         if (!onGround)
         {
             velocity.y += GRAVITY * deltaTime;
+    onGround = false;
+    // --- Real-Time Input (Walking) ---
+    velocity.x = 0.f;
+
+    static bool isFiring = false;
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+        velocity.x = -MOVE_SPEED;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+        velocity.x = MOVE_SPEED;
+
+    if ((sf::Mouse::isButtonPressed(sf::Mouse::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) && velocity.x == 0)
+    {
+        if (!isFiring){
+            float direction = (sprite.getScale().x > 0 ) ? 1.0f : -1.0f;
+            sf::Vector2f spawnPos = sprite.getPosition();
+            spawnPos.y -= sprite.getGlobalBounds().height /2.0f;
+            bullets.push_back(Bullet(bulletTexture, spawnPos, direction));
+            isFiring = true;
         }
     }
 
@@ -151,6 +171,7 @@ void Player::update(float deltaTime, std::vector<Bullet>& bulletList, sf::Textur
     {
         dashCooldownTime -= deltaTime;
         if (dashCooldownTime <= 0) canDash = true;
+        isFiring = false;
     }
     
     // 2.6 Shooting State
@@ -224,6 +245,58 @@ void Player::update(float deltaTime, std::vector<Bullet>& bulletList, sf::Textur
     sprite.move(velocity * deltaTime);
 
     // --- 6. GROUND COLLISION CHECK (Boundary Check) ---
+    // --- Physics (Gravity and Ground Check) ---
+    velocity.y += GRAVITY * deltaTime;
+
+    // --- Final Movement (Must be BEFORE ground check) ---
+    sprite.move(velocity * deltaTime);
+
+    // --- Collision Detection with Game Objects ---
+    sf::FloatRect playerBounds = getBounds();
+    for (const auto &obj : gameObjects)
+    {
+        sf::FloatRect objBounds = obj.getBounds();
+        if (playerBounds.intersects(objBounds))
+        {
+            // Calculate overlap on each side
+            float overlapLeft = (playerBounds.left + playerBounds.width) - objBounds.left;
+            float overlapRight = (objBounds.left + objBounds.width) - playerBounds.left;
+            float overlapTop = (playerBounds.top + playerBounds.height) - objBounds.top;
+            float overlapBottom = (objBounds.top + objBounds.height) - playerBounds.top;
+
+            // Find the smallest overlap to determine collision direction
+            float minOverlap = std::min({overlapLeft, overlapRight, overlapTop, overlapBottom});
+
+            // Resolve collision based on the direction
+            if (minOverlap == overlapTop && velocity.y > 0)
+            {
+                // Collision from above - player lands on object
+                sprite.setPosition(sprite.getPosition().x, objBounds.top);
+                velocity.y = 0.f;
+                onGround = true;
+            }
+            else if (minOverlap == overlapBottom && velocity.y < 0)
+            {
+                // Collision from below - player hits head
+                sprite.setPosition(sprite.getPosition().x, objBounds.top + objBounds.height + playerBounds.height);
+                velocity.y = 0.f;
+            }
+            else if (minOverlap == overlapLeft && velocity.x > 0)
+            {
+                // Collision from left - player hits right side of object
+                sprite.setPosition(objBounds.left - playerBounds.width / 2.f, sprite.getPosition().y);
+                velocity.x = 0.f;
+            }
+            else if (minOverlap == overlapRight && velocity.x < 0)
+            {
+                // Collision from right - player hits left side of object
+                sprite.setPosition(objBounds.left + objBounds.width + playerBounds.width / 2.f, sprite.getPosition().y);
+                velocity.x = 0.f;
+            }
+        }
+    }
+
+    // --- Ground Collision Check (Must be AFTER moving) ---
     if (sprite.getPosition().y >= 950.f)
     {
         if (velocity.y > 0) 
@@ -296,7 +369,47 @@ void Player::update(float deltaTime, std::vector<Bullet>& bulletList, sf::Textur
 // This just draws the sprite to the window
 void Player::draw(sf::RenderWindow &window)
 {
-    window.draw(sprite); // Draw MAIN Sprite.
+    window.draw(sprite);
+
+    // sf::RectangleShape debugBox;
+    // sf::FloatRect bounds = getBounds();
+    // debugBox.setPosition(bounds.left, bounds.top);
+    // debugBox.setSize(sf::Vector2f(bounds.width, bounds.height));
+    // debugBox.setFillColor(sf::Color::Transparent);
+    // debugBox.setOutlineColor(sf::Color::Red);
+    // debugBox.setOutlineThickness(2);
+    // window.draw(debugBox);
 }
 
+sf::Vector2f Player::getPosition()
+{
+    return sprite.getPosition();
+}
 
+sf::FloatRect Player::getBounds() const
+{
+    sf::FloatRect bounds = sprite.getGlobalBounds();
+
+    // --- CONFIGURATION ---
+    // 0.4f = Reduce width by 40% (Making player skinnier)
+    float scaleX = 0.69f;
+    // 0.1f = Reduce height by 10% (Removing empty space above head)
+    float scaleY = 0.52f;
+
+    // Calculate pixels to remove
+    float widthRemove = bounds.width * scaleX;
+    float heightRemove = bounds.height * scaleY;
+
+    // 1. Shrink Width (Sides)
+    // Move left side IN, and reduce total width
+    bounds.left += widthRemove / 2.f;
+    bounds.width -= widthRemove;
+
+    // 2. Shrink Height (Top Only)
+    // Move top DOWN. Important: We do NOT change the bottom,
+    // so the feet stay on the ground!
+    bounds.top += heightRemove;
+    bounds.height -= heightRemove;
+
+    return bounds;
+}

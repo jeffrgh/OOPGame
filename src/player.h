@@ -2,23 +2,21 @@
 
 #include <SFML/Graphics.hpp>
 #include <vector>
-#include "Shooting.h" // Assuming this defines the Bullet structure
-
+#include "Shooting.h"
+#include "gameObject.h"
 class Player
 {
-// --- PUBLIC FUNCTIONS (External Control) ---
+    // --- PUBLIC FUNCTIONS (What other files can tell the Player to do) ---
 public:
-    Player(); 
-    void loadAssets();
-    // deltaTime is the time since the last frame
-    void update(float deltaTime, std::vector<Bullet>& bulletList, sf::Texture& bulletTexture); 
-    void handleEvents(sf::Event event); 
-    void draw(sf::RenderWindow& window); 
-    
-    // Required for the Camera system
-    sf::Vector2f getPosition() const { return sprite.getPosition(); } 
+    Player();                                                                                                                        // The "Constructor": called when a new Player is created
+    void loadAssets();                                                                                                               // A function to load all our textures
+    void handleEvents(sf::Event event);                                                                                              // Handles one-shot inputs like jump
+    void update(float deltaTime, std::vector<Bullet> &bullets, sf::Texture &bulletTexture, std::vector<GameObject> &gameObjects); // Updates all physics, input, and animation
+    void draw(sf::RenderWindow &window);                                                                                             // Draws the player to Rendethe w
+    sf::Vector2f getPosition() const { return sprite.getPosition(); }
+    sf::FloatRect getBounds() const;
 
-// --- PRIVATE DATA (The Player's State and Assets) ---
+    // --- PRIVATE DATA (Stuff the Player manages for itself) ---
 private:
     // --- Primary Sprite and Physics ---
     sf::Sprite sprite;

@@ -16,25 +16,25 @@ MainMenu::MainMenu(sf::Font &font)
     creditsText.setString("Presented To You By:\nAayush, Tridev, Jeffrey, Dhiyanesh");
     creditsText.setCharacterSize(20);
     creditsText.setFillColor(sf::Color::White);
-    creditsText.setPosition(1200 , 950);
+    creditsText.setPosition(1300, 1000);
 
     titleText.setFont(font);
     titleText.setString("The Extraction");
     titleText.setCharacterSize(60);
     titleText.setFillColor(sf::Color::White);
-    titleText.setPosition(100 , 100);
+    titleText.setPosition(200, 100);
 
     startButton.setFont(font);
     startButton.setString("Start Game");
     startButton.setCharacterSize(40);
     startButton.setFillColor(sf::Color::White);
-    startButton.setPosition(120, 300);
+    startButton.setPosition(220, 300);
 
     exitButton.setFont(font);
     exitButton.setString("Exit");
     exitButton.setCharacterSize(40);
     exitButton.setFillColor(sf::Color::White);
-    exitButton.setPosition(120, 400);
+    exitButton.setPosition(220, 400);
 }
 
 // Event handling implementation

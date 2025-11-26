@@ -116,10 +116,9 @@ void Player::update(float deltaTime, std::vector<Bullet> &bullets, sf::Texture &
                     sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Right);
 
     bool wantsCrouch = sf::Keyboard::isKeyPressed(sf::Keyboard::S);
-
     bool wantsShoot = sf::Mouse::isButtonPressed(sf::Mouse::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Space);
 
-    // 1.1 Track Facing Direction
+    // 1.1 Track Facing Direction (Only update if actually pressing keys)
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
         facingDirection = 1;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
@@ -127,11 +126,13 @@ void Player::update(float deltaTime, std::vector<Bullet> &bullets, sf::Texture &
 
     // --- 2. MOVEMENT & PHYSICS LOGIC ---
 
-    // 2.1 Dash Physics
+    // 2.1 DASH LOGIC
     if (isDashing)
     {
+        // Force the velocity during a dash. Ignore player input.
         velocity.x = facingDirection * DASH_SPEED;
-        velocity.y = 0;
+        velocity.y = 0; // Gravity doesn't affect dashing usually
+
         dashTimeLeft -= deltaTime;
         if (dashTimeLeft <= 0)
         {
@@ -139,257 +140,218 @@ void Player::update(float deltaTime, std::vector<Bullet> &bullets, sf::Texture &
             velocity.x = 0;
         }
     }
-    else // Normal Behavior
+    // 2.2 NORMAL BEHAVIOR (Walk, Crouch, Fall)
+    else
     {
-        // 2.2 Crouch Logic (Fix for Run->Crouch transition)
+        // A. Handle Crouch
         if (onGround && wantsCrouch)
         {
             isCrouching = true;
-            velocity.x = 0; // Force stop horizontal movement when crouching
+            velocity.x = 0; // Cannot move while crouching
         }
         else
         {
             isCrouching = false;
 
-            // 2.3 Run/Walk Logic
-            velocity.x = 0.f;
-            if (isMoving && !isCrouching) // Only move if not crouching
-            {
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-                    velocity.x = -MOVE_SPEED;
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-                    velocity.x = MOVE_SPEED;
-            }
-        }
-
-        // 2.4 Gravity Logic
-        if (!onGround)
-        {
-            velocity.y += GRAVITY * deltaTime;
-            onGround = false;
-            // --- Real-Time Input (Walking) ---
-            velocity.x = 0.f;
-
-            static bool isFiring = false;
+            // B. Handle Walking (Only if NOT crouching)
+            velocity.x = 0.f; // Default to stop
 
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::A))
                 velocity.x = -MOVE_SPEED;
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::D))
                 velocity.x = MOVE_SPEED;
+        }
 
-            if ((sf::Mouse::isButtonPressed(sf::Mouse::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) && velocity.x == 0)
-            {
-                if (!isFiring)
-                {
-                    float direction = (sprite.getScale().x > 0) ? 1.0f : -1.0f;
-                    sf::Vector2f spawnPos = sprite.getPosition();
-                    spawnPos.y -= sprite.getGlobalBounds().height / 2.0f;
-                    bullets.push_back(Bullet(bulletTexture, spawnPos, direction));
-                    isFiring = true;
-                }
-            }
-
-            // 2.5 Dash Cooldown
-            if (!canDash)
-            {
-                dashCooldownTime -= deltaTime;
-                if (dashCooldownTime <= 0)
-                    canDash = true;
-                isFiring = false;
-            }
-
-            // 2.6 Shooting State
-            isShooting = wantsShoot;
-
-            // --- 3. SPRITE FLIPPING ---
-            if (facingDirection > 0)
-                sprite.setScale(3.f, 3.f);
-            else if (facingDirection < 0)
-                sprite.setScale(-3.f, 3.f);
-
-            // --- 4. ANIMATION STATE MACHINE (10 States) ---
-            const sf::Texture *oldTexture = sprite.getTexture();
-            textureSwitchTimer += deltaTime;
-
-            if (textureSwitchTimer > 0.1f)
-            {
-                textureSwitchTimer = 0.f;
-
-                const sf::Texture *newTexture = oldTexture;
-
-                // 1. DASH (Highest Priority)
-                if (isDashing)
-                {
-                    newTexture = &dashTexture;
-                    currentFrameCount = DASH_FRAMES;
-                }
-                // 2. JUMP / AIRBORNE
-                else if (!onGround)
-                {
-                    if (isDoubleJumping)
-                    {
-                        newTexture = &doubleJumpTexture;
-                        currentFrameCount = DOUBLE_JUMP_FRAMES;
-                    }
-                    else // Single Jump
-                    {
-                        newTexture = isShooting ? &jumpShootTexture : &jumpTexture;
-                        currentFrameCount = JUMP_FRAMES;
-                    }
-                }
-                // 3. CROUCH
-                else if (isCrouching)
-                {
-                    newTexture = isShooting ? &crouchShootTexture : &crouchTexture;
-                    currentFrameCount = CROUCH_FRAMES;
-                }
-                // 4. RUN
-                else if (velocity.x != 0.f)
-                {
-                    newTexture = isShooting ? &runShootTexture : &runTexture;
-                    currentFrameCount = RUN_FRAMES;
-                }
-                // 5. IDLE (Default)
-                else
-                {
-                    newTexture = isShooting ? &idleShootTexture : &idleTexture;
-                    currentFrameCount = IDLE_FRAMES;
-                }
-
-                // Apply new texture only if it changed
-                if (oldTexture != newTexture)
-                {
-                    sprite.setTexture(*newTexture);
-                    animFrame = 0; // Reset animation frame
-                    animTimer = 0.f;
-                }
-            }
-
-            // --- 5. APPLY MOVEMENT ---
-            sprite.move(velocity * deltaTime);
-
-            // --- 6. GROUND COLLISION CHECK (Boundary Check) ---
-            // --- Physics (Gravity and Ground Check) ---
+        // C. Handle Gravity
+        if (!onGround)
+        {
             velocity.y += GRAVITY * deltaTime;
+            onGround = false;
+        }
 
-            // --- Final Movement (Must be BEFORE ground check) ---
-            sprite.move(velocity * deltaTime);
-
-            // --- Collision Detection with Game Objects ---
-            sf::FloatRect playerBounds = getBounds();
-            for (const auto &obj : gameObjects)
+        // D. Handle Shooting (Only allowed when not dashing?)
+        // (You can move this outside the else if you want to shoot while dashing)
+        static bool isFiring = false;
+        if (wantsShoot)
+        {
+            if (!isFiring)
             {
-                sf::FloatRect objBounds = obj.getBounds();
-                if (playerBounds.intersects(objBounds))
-                {
-                    // Calculate overlap on each side
-                    float overlapLeft = (playerBounds.left + playerBounds.width) - objBounds.left;
-                    float overlapRight = (objBounds.left + objBounds.width) - playerBounds.left;
-                    float overlapTop = (playerBounds.top + playerBounds.height) - objBounds.top;
-                    float overlapBottom = (objBounds.top + objBounds.height) - playerBounds.top;
-
-                    // Find the smallest overlap to determine collision direction
-                    float minOverlap = std::min({overlapLeft, overlapRight, overlapTop, overlapBottom});
-
-                    // Resolve collision based on the direction
-                    if (minOverlap == overlapTop && velocity.y > 0)
-                    {
-                        // Collision from above - player lands on object
-                        sprite.setPosition(sprite.getPosition().x, objBounds.top);
-                        velocity.y = 0.f;
-                        onGround = true;
-                    }
-                    else if (minOverlap == overlapBottom && velocity.y < 0)
-                    {
-                        // Collision from below - player hits head
-                        sprite.setPosition(sprite.getPosition().x, objBounds.top + objBounds.height + playerBounds.height);
-                        velocity.y = 0.f;
-                    }
-                    else if (minOverlap == overlapLeft && velocity.x > 0)
-                    {
-                        // Collision from left - player hits right side of object
-                        sprite.setPosition(objBounds.left - playerBounds.width / 2.f, sprite.getPosition().y);
-                        velocity.x = 0.f;
-                    }
-                    else if (minOverlap == overlapRight && velocity.x < 0)
-                    {
-                        // Collision from right - player hits left side of object
-                        sprite.setPosition(objBounds.left + objBounds.width + playerBounds.width / 2.f, sprite.getPosition().y);
-                        velocity.x = 0.f;
-                    }
-                }
+                float direction = (facingDirection > 0) ? 1.0f : -1.0f;
+                sf::Vector2f spawnPos = sprite.getPosition();
+                spawnPos.y -= sprite.getGlobalBounds().height / 2.0f;
+                bullets.push_back(Bullet(bulletTexture, spawnPos, direction));
+                isFiring = true;
             }
-
-            // --- Ground Collision Check (Must be AFTER moving) ---
-            if (sprite.getPosition().y >= 950.f)
-            {
-                if (velocity.y > 0)
-                {
-                    sprite.setPosition(sprite.getPosition().x, 950.f);
-                    onGround = true;
-                    velocity.y = 0;
-                    jumpCount = 0;
-                    isDoubleJumping = false;
-                }
-            }
-
-            // --- 7. ANIMATION FRAME UPDATE (THE CROUCH HOLD FIX) ---
-            animTimer += deltaTime;
-            jumpAnimTimer += deltaTime; // Timer update placed correctly outside the animTimer check
-
-            // Check jump timer independently to manage slow jump frames
-            if (!onGround && !isDoubleJumping && jumpAnimTimer >= JUMP_ANIM_SPEED)
-            {
-                jumpAnimTimer = 0.0f;
-                // Only advance the single jump frame if we haven't reached the final 'hold' frame.
-                if (animFrame < JUMP_FRAMES - 1)
-                {
-                    animFrame++;
-                }
-            }
-
-            // Check main animation timer for all other states (Crouch, Idle, Run, Dash, DoubleJump)
-            if (animTimer >= ANIM_SPEED)
-            {
-                animTimer = 0.f;
-
-                // **CROUCH / JUMP HOLD LOGIC**
-                if (isCrouching && onGround)
-                {
-                    // Crouch: Hold on the final frame (index 3).
-                    if (animFrame < CROUCH_FRAMES - 2)
-                    {
-                        animFrame++;
-                    }
-                    // If the player releases Ctrl, isCrouching becomes false, and the next frame will be Idle/Run (Point 4).
-                }
-                else if (isDoubleJumping)
-                {
-                    // Double Jump: Full loop
-                    animFrame++;
-                    if (animFrame >= currentFrameCount)
-                    {
-                        animFrame = 0;
-                    }
-                }
-                else if (!onGround)
-                {
-                    // Single Jump: Handled by the jumpAnimTimer above. We do nothing here to prevent it from cycling faster.
-                }
-                // **NORMAL LOOPING LOGIC (Covers Idle, Run, Dash)**
-                else
-                {
-                    animFrame++;
-                    if (animFrame >= currentFrameCount)
-                    {
-                        animFrame = 0;
-                    }
-                }
-            }
-            // --- 8. UPDATE TEXTURE RECT ---
-            sprite.setTextureRect(sf::IntRect(animFrame * FRAME_WIDTH, 0, FRAME_WIDTH, FRAME_HEIGHT));
+        }
+        else
+        {
+            isFiring = false; // Reset firing when button released
         }
     }
+
+    // --- DASH COOLDOWN (Runs always) ---
+    if (!canDash)
+    {
+        dashCooldownTime -= deltaTime;
+        if (dashCooldownTime <= 0)
+            canDash = true;
+    }
+
+    isShooting = wantsShoot;
+
+    // --- 3. SPRITE FLIPPING ---
+    if (facingDirection > 0)
+        sprite.setScale(3.f, 3.f);
+    else if (facingDirection < 0)
+        sprite.setScale(-3.f, 3.f);
+
+    // --- 4. ANIMATION STATE MACHINE ---
+    const sf::Texture *oldTexture = sprite.getTexture();
+    textureSwitchTimer += deltaTime;
+
+    if (textureSwitchTimer > 0.1f)
+    {
+        textureSwitchTimer = 0.f;
+        const sf::Texture *newTexture = oldTexture;
+
+        // Priority 1: Dashing
+        if (isDashing)
+        {
+            newTexture = &dashTexture;
+            currentFrameCount = DASH_FRAMES;
+        }
+        // Priority 2: Air
+        else if (!onGround)
+        {
+            if (isDoubleJumping)
+            {
+                newTexture = &doubleJumpTexture;
+                currentFrameCount = DOUBLE_JUMP_FRAMES;
+            }
+            else
+            {
+                newTexture = isShooting ? &jumpShootTexture : &jumpTexture;
+                currentFrameCount = JUMP_FRAMES;
+            }
+        }
+        // Priority 3: Crouch
+        else if (isCrouching)
+        {
+            newTexture = isShooting ? &crouchShootTexture : &crouchTexture;
+            currentFrameCount = CROUCH_FRAMES;
+        }
+        // Priority 4: Run
+        else if (velocity.x != 0.f)
+        {
+            newTexture = isShooting ? &runShootTexture : &runTexture;
+            currentFrameCount = RUN_FRAMES;
+        }
+        // Priority 5: Idle
+        else
+        {
+            newTexture = isShooting ? &idleShootTexture : &idleTexture;
+            currentFrameCount = IDLE_FRAMES;
+        }
+
+        if (oldTexture != newTexture)
+        {
+            sprite.setTexture(*newTexture);
+            animFrame = 0;
+            animTimer = 0.f;
+        }
+    }
+
+    // --- 5. APPLY MOVEMENT (ONLY ONCE) ---
+    sprite.move(velocity * deltaTime);
+
+    // --- 6. COLLISION & GROUND CHECKS ---
+    sf::FloatRect playerBounds = getBounds();
+
+    // Object Collision
+    for (const auto &obj : gameObjects)
+    {
+        sf::FloatRect objBounds = obj.getBounds();
+        if (playerBounds.intersects(objBounds))
+        {
+            // ... (Your existing collision logic goes here) ...
+            // (I omitted the detailed collision math for brevity, but paste your logic back here)
+            float overlapLeft = (playerBounds.left + playerBounds.width) - objBounds.left;
+            float overlapRight = (objBounds.left + objBounds.width) - playerBounds.left;
+            float overlapTop = (playerBounds.top + playerBounds.height) - objBounds.top;
+            float overlapBottom = (objBounds.top + objBounds.height) - playerBounds.top;
+            float minOverlap = std::min({overlapLeft, overlapRight, overlapTop, overlapBottom});
+
+            if (minOverlap == overlapTop && velocity.y > 0)
+            {
+                sprite.setPosition(sprite.getPosition().x, objBounds.top);
+                velocity.y = 0.f;
+                onGround = true;
+            }
+            else if (minOverlap == overlapBottom && velocity.y < 0)
+            {
+                sprite.setPosition(sprite.getPosition().x, objBounds.top + objBounds.height + playerBounds.height);
+                velocity.y = 0.f;
+            }
+            else if (minOverlap == overlapLeft && velocity.x > 0)
+            {
+                sprite.setPosition(objBounds.left - playerBounds.width / 2.f, sprite.getPosition().y);
+                velocity.x = 0.f;
+            }
+            else if (minOverlap == overlapRight && velocity.x < 0)
+            {
+                sprite.setPosition(objBounds.left + objBounds.width + playerBounds.width / 2.f, sprite.getPosition().y);
+                velocity.x = 0.f;
+            }
+        }
+    }
+
+    // Floor Boundary Check (The float fix from previous step)
+    // Recalculate bounds after potential object collision adjustment
+    playerBounds = getBounds();
+    float feetPosition = playerBounds.top + playerBounds.height;
+
+    if (feetPosition >= 950.f)
+    {
+        if (velocity.y > 0)
+        {
+            float overlap = feetPosition - 950.f;
+            sprite.setPosition(sprite.getPosition().x, sprite.getPosition().y - overlap);
+            onGround = true;
+            velocity.y = 0;
+            jumpCount = 0;
+            isDoubleJumping = false;
+        }
+    }
+
+    // --- 7. ANIMATION FRAME UPDATES ---
+    // ... (Your existing animation frame increment logic goes here) ...
+    animTimer += deltaTime;
+    jumpAnimTimer += deltaTime;
+
+    if (!onGround && !isDoubleJumping && jumpAnimTimer >= JUMP_ANIM_SPEED)
+    {
+        jumpAnimTimer = 0.0f;
+        if (animFrame < JUMP_FRAMES - 1)
+            animFrame++;
+    }
+
+    if (animTimer >= ANIM_SPEED)
+    {
+        animTimer = 0.f;
+        if (isCrouching && onGround)
+        {
+            if (animFrame < CROUCH_FRAMES - 2)
+                animFrame++;
+        }
+        else
+        {
+            animFrame++;
+            if (animFrame >= currentFrameCount)
+                animFrame = 0;
+        }
+    }
+
+    sprite.setTextureRect(sf::IntRect(animFrame * FRAME_WIDTH, 0, FRAME_WIDTH, FRAME_HEIGHT));
 }
 
 // This just draws the sprite to the window

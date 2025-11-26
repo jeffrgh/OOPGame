@@ -6,7 +6,7 @@ PauseMenu::PauseMenu(sf::Font &font)
 {
     // --- Set up the background dim ---
     // This shape will cover the whole screen
-    backgroundDim.setSize(sf::Vector2f(1536, 1024));     // Use your window's size
+    backgroundDim.setSize(sf::Vector2f(1920, 1080));     // Use your window's size
     backgroundDim.setFillColor(sf::Color(0, 0, 0, 150)); // Black, 150/255 opacity
 
     // Paused Title.
@@ -15,7 +15,7 @@ PauseMenu::PauseMenu(sf::Font &font)
     pauseTitle.setCharacterSize(80);
     pauseTitle.setFillColor(sf::Color::White);
     pauseTitle.setOrigin(pauseTitle.getLocalBounds().width / 2.0f, pauseTitle.getLocalBounds().height / 2.0f);
-    pauseTitle.setPosition(1536 / 2.0f, 250);
+    pauseTitle.setPosition(1920 / 2.0f, 250);
 
     // Setting Resume Button.
     resumeButton.setFont(font);
@@ -23,16 +23,16 @@ PauseMenu::PauseMenu(sf::Font &font)
     resumeButton.setCharacterSize(60);
     resumeButton.setFillColor(sf::Color::White);
     resumeButton.setOrigin(resumeButton.getLocalBounds().width / 2.0f, resumeButton.getLocalBounds().height / 2.0f);
-    resumeButton.setPosition(1536 / 2.0f, 450);
-    resumeButton.setPosition(1536 / 2.0f, 450);
+    resumeButton.setPosition(1920 / 2.0f, 450);
+    resumeButton.setPosition(1920 / 2.0f, 450);
 
     quitButton.setFont(font);
     quitButton.setString("Main Menu");
     quitButton.setCharacterSize(60);
     quitButton.setFillColor(sf::Color::White);
     quitButton.setOrigin(quitButton.getLocalBounds().width / 2.0f, quitButton.getLocalBounds().height / 2.0f);
-    quitButton.setPosition(1536 / 2.0f, 650);
-    quitButton.setPosition(1536 / 2.0f, 650);
+    quitButton.setPosition(1920 / 2.0f, 650);
+    quitButton.setPosition(1920 / 2.0f, 650);
 }
 
 // Event handling implementation

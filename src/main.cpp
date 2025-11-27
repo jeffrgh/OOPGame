@@ -7,6 +7,7 @@
 #include "pauseMenu.h"
 #include "movementTutorial.h"
 #include "gameObject.h"
+#include "HUD.hpp"
 #include "shooting.h"
 
 enum class GameState
@@ -18,12 +19,10 @@ enum class GameState
 };
 
 sf::Texture bulletTexture;
-std::vector<Bullet> bulletList;
 sf::Music menuMusic;
 sf::Font menuFont;
-sf::Texture backgroundTexture;
+sf::Texture backgroundTexture;  
 sf::Sprite backgroundSprite;
-
 std::vector<Bullet> bullets;
 
 int main()
@@ -58,9 +57,9 @@ int main()
         std::cerr << "Error loading mainMenuFont.ttf" << std::endl;
         return -1;
     }
-    if (!bulletTexture.loadFromFile("../assets/Bullet.jpg")) // (Needs "Bullet.png")
+    if (!bulletTexture.loadFromFile("../assets/Bullet.jpg")) // (Needs "Bullet.jpg")
     {
-        std::cerr << "Error loading Bullet.png" << std::endl;
+        std::cerr << "Error loading Bullet.jpg" << std::endl;
         return -1;
     }
 
@@ -68,6 +67,9 @@ int main()
     MainMenu mainMenu(menuFont);
     PauseMenu pauseMenu(menuFont);
     movementTutorial move(menuFont);
+
+    HUD hud(100.f);
+
     GameState currentGameState = GameState::MainMenu;
 
     // Create The Main Menu Music
@@ -105,7 +107,12 @@ int main()
         {
             if (event.type == sf::Event::Closed)
                 window.close();
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::K))
+                hud.damage(1);   // hold A to damage
 
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::L))
+                hud.heal(1); 
+                
             if (currentGameState == GameState::MainMenu)
             {
                 sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
@@ -227,6 +234,7 @@ int main()
                 window.setView(window.getDefaultView());
                 move.draw(window);
             } // Tell the player to draw itself
+            hud.draw(window);
         }
 
         else if (currentGameState == GameState::PAUSED)
@@ -245,6 +253,7 @@ int main()
 
         window.display();
     }
+
 
     return 0;
 }

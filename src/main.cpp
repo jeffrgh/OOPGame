@@ -7,6 +7,7 @@
 #include "pauseMenu.h"
 #include "movementTutorial.h"
 #include "gameObject.h"
+#include "HUD.hpp"
 #include "shooting.h"
 
 enum class GameState
@@ -66,6 +67,9 @@ int main()
     MainMenu mainMenu(menuFont);
     PauseMenu pauseMenu(menuFont);
     movementTutorial move(menuFont);
+
+    HUD hud(100.f);
+
     GameState currentGameState = GameState::MainMenu;
 
     // Create The Main Menu Music
@@ -103,7 +107,12 @@ int main()
         {
             if (event.type == sf::Event::Closed)
                 window.close();
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::K))
+                hud.damage(1);   // hold A to damage
 
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::L))
+                hud.heal(1); 
+                
             if (currentGameState == GameState::MainMenu)
             {
                 sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
@@ -225,6 +234,7 @@ int main()
                 window.setView(window.getDefaultView());
                 move.draw(window);
             } // Tell the player to draw itself
+            hud.draw(window);
         }
 
         else if (currentGameState == GameState::PAUSED)
@@ -243,6 +253,7 @@ int main()
 
         window.display();
     }
+
 
     return 0;
 }

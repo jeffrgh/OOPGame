@@ -118,7 +118,7 @@ void Player::update(float deltaTime, std::vector<Bullet> &bullets, sf::Texture &
     bool wantsCrouch = sf::Keyboard::isKeyPressed(sf::Keyboard::S);
     bool wantsShoot = sf::Mouse::isButtonPressed(sf::Mouse::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Space);
 
-    // 1.1 Track Facing Direction (Only update if actually pressing keys)
+    // 1.1 Track Facing Direction
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
         facingDirection = 1;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
@@ -129,9 +129,8 @@ void Player::update(float deltaTime, std::vector<Bullet> &bullets, sf::Texture &
     // 2.1 DASH LOGIC
     if (isDashing)
     {
-        // Force the velocity during a dash. Ignore player input.
         velocity.x = facingDirection * DASH_SPEED;
-        velocity.y = 0; // Gravity doesn't affect dashing usually
+        velocity.y = 0; 
 
         dashTimeLeft -= deltaTime;
         if (dashTimeLeft <= 0)
@@ -140,21 +139,21 @@ void Player::update(float deltaTime, std::vector<Bullet> &bullets, sf::Texture &
             velocity.x = 0;
         }
     }
-    // 2.2 NORMAL BEHAVIOR (Walk, Crouch, Fall)
+    // 2.2 NORMAL BEHAVIOR 
     else
     {
         // A. Handle Crouch
         if (onGround && wantsCrouch)
         {
             isCrouching = true;
-            velocity.x = 0; // Cannot move while crouching
+            velocity.x = 0; 
         }
         else
         {
             isCrouching = false;
 
-            // B. Handle Walking (Only if NOT crouching)
-            velocity.x = 0.f; // Default to stop
+            // B. Handle Walking 
+            velocity.x = 0.f; 
 
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::A))
                 velocity.x = -MOVE_SPEED;
@@ -166,11 +165,9 @@ void Player::update(float deltaTime, std::vector<Bullet> &bullets, sf::Texture &
         if (!onGround)
         {
             velocity.y += GRAVITY * deltaTime;
-            onGround = false;
         }
 
-        // D. Handle Shooting (Only allowed when not dashing?)
-        // (You can move this outside the else if you want to shoot while dashing)
+        // D. Handle Shooting
         static bool isFiring = false;
         if (wantsShoot)
         {
@@ -185,11 +182,11 @@ void Player::update(float deltaTime, std::vector<Bullet> &bullets, sf::Texture &
         }
         else
         {
-            isFiring = false; // Reset firing when button released
+            isFiring = false; 
         }
     }
 
-    // --- DASH COOLDOWN (Runs always) ---
+    // --- DASH COOLDOWN ---
     if (!canDash)
     {
         dashCooldownTime -= deltaTime;
@@ -261,20 +258,21 @@ void Player::update(float deltaTime, std::vector<Bullet> &bullets, sf::Texture &
         }
     }
 
-    // --- 5. APPLY MOVEMENT (ONLY ONCE) ---
+    // --- 5. APPLY MOVEMENT ---
     sprite.move(velocity * deltaTime);
 
     // --- 6. COLLISION & GROUND CHECKS ---
     sf::FloatRect playerBounds = getBounds();
+    
+    // Reset onGround for this frame
+    onGround = false; 
 
-    // Object Collision
+    // 6.1 Standard Collision (Blocks)
     for (const auto &obj : gameObjects)
     {
         sf::FloatRect objBounds = obj.getBounds();
         if (playerBounds.intersects(objBounds))
         {
-            // ... (Your existing collision logic goes here) ...
-            // (I omitted the detailed collision math for brevity, but paste your logic back here)
             float overlapLeft = (playerBounds.left + playerBounds.width) - objBounds.left;
             float overlapRight = (objBounds.left + objBounds.width) - playerBounds.left;
             float overlapTop = (playerBounds.top + playerBounds.height) - objBounds.top;
@@ -286,6 +284,8 @@ void Player::update(float deltaTime, std::vector<Bullet> &bullets, sf::Texture &
                 sprite.setPosition(sprite.getPosition().x, objBounds.top);
                 velocity.y = 0.f;
                 onGround = true;
+                jumpCount = 0;
+                isDoubleJumping = false;
             }
             else if (minOverlap == overlapBottom && velocity.y < 0)
             {
@@ -305,26 +305,51 @@ void Player::update(float deltaTime, std::vector<Bullet> &bullets, sf::Texture &
         }
     }
 
-    // Floor Boundary Check (The float fix from previous step)
-    // Recalculate bounds after potential object collision adjustment
-    playerBounds = getBounds();
+    // 6.2 Foot Sensor for Blocks (Fixes flickering on blocks)
+    if (!onGround && velocity.y >= 0)
+    {
+        sf::FloatRect feetRect = getBounds();
+        feetRect.top += feetRect.height; 
+        feetRect.height = 2.0f;          
+        
+        for (const auto &obj : gameObjects)
+        {
+            if (feetRect.intersects(obj.getBounds()))
+            {
+                onGround = true;
+                velocity.y = 0.f;
+                jumpCount = 0;
+                isDoubleJumping = false;
+                break; 
+            }
+        }
+    }
+
+    // 6.3 Floor Boundary Check (The Fix for Base Ground)
+    playerBounds = getBounds(); 
     float feetPosition = playerBounds.top + playerBounds.height;
 
+    // Check if we are touching or below the floor
     if (feetPosition >= 950.f)
     {
+        // 1. If falling, snap to floor
         if (velocity.y > 0)
         {
             float overlap = feetPosition - 950.f;
             sprite.setPosition(sprite.getPosition().x, sprite.getPosition().y - overlap);
-            onGround = true;
             velocity.y = 0;
+        }
+
+        // 2. If we are on the floor (not moving up), set Grounded
+        if (velocity.y >= 0)
+        {
+            onGround = true;
             jumpCount = 0;
             isDoubleJumping = false;
         }
     }
 
     // --- 7. ANIMATION FRAME UPDATES ---
-    // ... (Your existing animation frame increment logic goes here) ...
     animTimer += deltaTime;
     jumpAnimTimer += deltaTime;
 

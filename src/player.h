@@ -38,6 +38,8 @@ private:
     sf::Texture dashTexture;       // Dash (No Shoot variation needed)
     sf::Texture doubleJumpTexture; // Double Jump (No Shoot variation needed)
 
+    sf::Texture shootTexture; //Texture for shooting
+
     // --- State Variables ---
     int jumpCount;
     int facingDirection; // 1 for right, -1 for left
@@ -88,4 +90,5 @@ private:
     const int DASH_FRAMES = 4;
     const int DOUBLE_JUMP_FRAMES = 4;
     const int CROUCH_HOLD_FRAME = 2;
+    const int SHOOT_FRAMES = 4;
 };

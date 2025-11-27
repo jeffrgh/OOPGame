@@ -18,12 +18,10 @@ enum class GameState
 };
 
 sf::Texture bulletTexture;
-std::vector<Bullet> bulletList;
 sf::Music menuMusic;
 sf::Font menuFont;
-sf::Texture backgroundTexture;
+sf::Texture backgroundTexture;  
 sf::Sprite backgroundSprite;
-
 std::vector<Bullet> bullets;
 
 int main()
@@ -58,9 +56,9 @@ int main()
         std::cerr << "Error loading mainMenuFont.ttf" << std::endl;
         return -1;
     }
-    if (!bulletTexture.loadFromFile("../assets/Bullet.jpg")) // (Needs "Bullet.png")
+    if (!bulletTexture.loadFromFile("../assets/Bullet.jpg")) // (Needs "Bullet.jpg")
     {
-        std::cerr << "Error loading Bullet.png" << std::endl;
+        std::cerr << "Error loading Bullet.jpg" << std::endl;
         return -1;
     }
 

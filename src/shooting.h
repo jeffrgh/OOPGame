@@ -14,5 +14,5 @@ public:
 
 private:
     sf::Vector2f velocity;
-    const float BULLET_SPEED = 800.f;
+    static constexpr float BULLET_SPEED = 800.f;
 };

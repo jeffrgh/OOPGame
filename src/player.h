@@ -16,12 +16,20 @@ public:
     sf::Vector2f getPosition() { return sprite.getPosition(); }
     sf::FloatRect getBounds() const;
 
+    void takeDamage(float amount);
+    float getHealth() const { return health; }
+
     // --- PRIVATE DATA (Stuff the Player manages for itself) ---
 private:
+
     // --- Primary Sprite and Physics ---
     sf::Sprite sprite;
     sf::Vector2f velocity;
 
+    float health;
+    const float MAX_HEALTH = 100.f;
+
+    
     // --- CHARACTER ANIMATION TEXTURES (10 Required Unique States) ---
     sf::Texture idleTexture;      // Idle (No Shoot)
     sf::Texture idleShootTexture; // Idle + Shoot

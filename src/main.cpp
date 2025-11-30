@@ -7,15 +7,20 @@
 #include "pauseMenu.h"
 #include "movementTutorial.h"
 #include "gameObject.h"
+#include "gameOver.h"
 #include "HUD.hpp"
 #include "shooting.h"
+#include "boss.h"
+
 
 enum class GameState
 {
     MainMenu,
     Playing,
     PAUSED,
+    GameOver,
     Exiting
+
 };
 
 sf::Texture bulletTexture;
@@ -67,6 +72,7 @@ int main()
     MainMenu mainMenu(menuFont);
     PauseMenu pauseMenu(menuFont);
     movementTutorial move(menuFont);
+    GameOver gameOverScreen(menuFont); 
 
     HUD hud(100.f);
 
@@ -81,6 +87,15 @@ int main()
     Player myPlayer;
     myPlayer.loadAssets();
 
+
+    // --- 2. INITIALIZE BOSS ---
+    Enemy boss;
+    if (!boss.loadResources()) {
+        std::cerr << "Error loading Boss resources!" << std::endl;
+    }
+    boss.setPosition(1500.f, 950.f); 
+
+
     // Create a ground object for the player to collide with
     std::vector<GameObject> gameObjects;
     gameObjects.emplace_back(sf::Vector2f(800.f, 850.f), sf::Vector2f(400.f, 80.f));
@@ -88,6 +103,7 @@ int main()
     sf::Clock gameClock;
     bool showTutorial = false;
     sf::Clock tutorialTimer;
+    float iFrameTimer = 0.0f;
 
     // The Game Loop
     while (window.isOpen())
@@ -159,15 +175,76 @@ int main()
                     camera.setCenter(window.getDefaultView().getCenter());
                 }
             }
+            else if (currentGameState == GameState::GameOver) {
+                window.setView(window.getDefaultView());
+                sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+                GameOver_Result result = gameOverScreen.handleEvent(event, mousePos);
+
+                if (result == GameOver_Result::Exit) {
+                    window.close();
+                }
+                else if (result == GameOver_Result::Restart) {
+                    myPlayer = Player(); 
+                    myPlayer.loadAssets(); 
+                    
+                    // 2. Reset Boss
+                    boss = Enemy();
+                    boss.loadResources();
+                    boss.setPosition(1500.f, 950.f);
+
+                    // 3. Clear Bullets
+                    bullets.clear();
+                    
+                    // 4. Reset HUD
+                    hud.setHealth(100.f);
+
+                    // 5. Start Game
+                    currentGameState = GameState::Playing;
+                    menuMusic.stop();
+                }
+            }
         }
 
         // Update based on game state
         if (currentGameState == GameState::Playing)
         {
+            if (myPlayer.getHealth() <= 0) {
+                currentGameState = GameState::GameOver;
+            }
+
             myPlayer.update(deltaTime, bullets, bulletTexture, gameObjects);
+
+            boss.update(deltaTime, myPlayer.getPosition());
+
             for (int i = 0; i < bullets.size(); i++)
             {
                 bullets[i].update(deltaTime);
+
+                if (boss.isAlive() && boss.getBounds().intersects(bullets[i].bulletsprite.getGlobalBounds()))
+                {
+                    boss.takeDamage(10); // Deal 10 damage
+                    bullets.erase(bullets.begin() + i);
+                    i--; // Decrement i so we don't skip the next bullet
+                }
+            }
+            if (iFrameTimer > 0.0f) iFrameTimer -= deltaTime;
+            bool hitByBoss = false;
+
+            if (boss.isAlive() && boss.getBounds().intersects(myPlayer.getBounds())) hitByBoss = true;
+
+            std::vector<Bullet>& bossBullets = boss.getBullets();
+            for (int i = 0; i < bossBullets.size(); i++) {
+                if (myPlayer.getBounds().intersects(bossBullets[i].bulletsprite.getGlobalBounds())) {
+                    hitByBoss = true;
+                    bossBullets.erase(bossBullets.begin() + i);
+                    i--;
+                }
+            }
+
+            if (hitByBoss && iFrameTimer <= 0.0f) {
+                myPlayer.takeDamage(10.f); 
+                hud.damage(10.f);
+                iFrameTimer = 1.0f;
             }
 
             if (showTutorial && tutorialTimer.getElapsedTime().asSeconds() > 10.0f)
@@ -217,6 +294,8 @@ int main()
             window.setView(camera);
             window.draw(backgroundSprite);
             myPlayer.draw(window); // Tell the player to draw itself
+            boss.draw(window);
+
 
             // Draw all game objects
             for (const auto &obj : gameObjects)
@@ -243,12 +322,24 @@ int main()
             window.setView(camera);
             window.draw(backgroundSprite);
             myPlayer.draw(window);
+            boss.draw(window);
             for (const auto &obj : gameObjects)
             {
                 obj.draw(window);
             }
             window.setView(window.getDefaultView());
             pauseMenu.draw(window);
+        }
+        else if (currentGameState == GameState::GameOver) {
+            // Draw game world frozen in background
+            window.setView(camera);
+            window.draw(backgroundSprite);
+            boss.draw(window);
+            myPlayer.draw(window);
+            
+            // Draw Game Over Screen
+            window.setView(window.getDefaultView());
+            gameOverScreen.draw(window);
         }
 
         window.display();

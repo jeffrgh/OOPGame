@@ -20,11 +20,22 @@ Player::Player()
     facingDirection = 1;
     isCrouching = false;
     isShooting = false;
-    // shootTimer = 0.0f; // Uncomment if you are using shootTimer
+    shootTimer = 0.0f; 
     jumpAnimTimer = 0.0f;
+    health = MAX_HEALTH;
 }
 
+
+void Player::takeDamage(float amount)
+{
+    health -= amount;
+    if (health < 0) health = 0;
+    std::cout << "Player hit! Health: " << health << std::endl;
+}
+
+
 // Function To Load All Assets
+
 void Player::loadAssets()
 {
     // --- Load Textures for ALL 10 UNIQUE STATES ---
@@ -167,22 +178,22 @@ void Player::update(float deltaTime, std::vector<Bullet> &bullets, sf::Texture &
             velocity.y += GRAVITY * deltaTime;
         }
 
+        if (shootTimer > 0.0f) {
+            shootTimer -= deltaTime;
+        }
+
         // D. Handle Shooting
         static bool isFiring = false;
         if (wantsShoot)
         {
-            if (!isFiring)
+            if (shootTimer <= 0.0f)
             {
                 float direction = (facingDirection > 0) ? 1.0f : -1.0f;
                 sf::Vector2f spawnPos = sprite.getPosition();
                 spawnPos.y -= sprite.getGlobalBounds().height / 2.0f;
                 bullets.push_back(Bullet(bulletTexture, spawnPos, direction));
-                isFiring = true;
+                shootTimer = 0.2f;
             }
-        }
-        else
-        {
-            isFiring = false; 
         }
     }
 
